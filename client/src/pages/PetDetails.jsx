@@ -20,7 +20,7 @@ export default function PetDetails() {
     useEffect(() => {
         const fetchPetDetails = async () => {
             try {
-                const res = await fetch(`http://localhost:5000/api/pets/${id}`);
+                const res = await fetch(`https://pet-adoption-capstone.onrender.com/api/pets/${id}`);
                 if (res.ok) {
                     setPet(await res.json());
                 }

@@ -12,7 +12,7 @@ export default function SavedPets() {
     useEffect(() => {
         const fetchSavedPets = async () => {
             try {
-                const res = await fetch('http://localhost:5000/api/users/saved-pets', {
+                const res = await fetch('https://pet-adoption-capstone.onrender.com/api/users/saved-pets', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -33,7 +33,7 @@ export default function SavedPets() {
         e.preventDefault(); 
         
         try {
-            const res = await fetch(`http://localhost:5000/api/users/save-pet/${petId}`, {
+            const res = await fetch(`https://pet-adoption-capstone.onrender.com/api/users/save-pet/${petId}`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
