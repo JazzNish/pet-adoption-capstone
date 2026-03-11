@@ -2,20 +2,16 @@ import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 
-
-// Initialize Resend with your API key
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET || 'fallback_secret', { expiresIn: '30d' });
 };
 
-// 👇 The Firewall-Bypassing Transporter!
+// 👇 Back to the clean, original Gmail setup
 const transporter = nodemailer.createTransport({
-    host: 'smtp-relay.brevo.com',
-    port: 2525, // 👈 THE SECRET BACKDOOR PORT
-    secure: false, 
+    service: 'gmail',
     auth: {
-        user: process.env.BREVO_USER,
-        pass: process.env.BREVO_PASS
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
     }
 });
 
@@ -42,10 +38,9 @@ export const sendOtpCode = async (req, res) => {
             expiresAt: Date.now() + 10 * 60 * 1000 
         });
 
-        // 👇 Sending the email via Brevo
         const mailOptions = {
-            from: `"FurEver" <${process.env.BREVO_USER}>`, 
-            to: email, // 👈 This will now work for ANY email address!
+            from: process.env.EMAIL_USER,
+            to: email,
             subject: isNewUser ? 'Welcome to FurEver - Verification Code' : 'FurEver - Login Code',
             html: `<h2>${isNewUser ? 'Welcome to FurEver!' : 'Welcome back!'}</h2>
                    <p>Your secure 6-digit code is: <strong>${otpCode}</strong></p>
@@ -76,23 +71,21 @@ export const verifyEmail = async (req, res) => {
 
         let user;
 
-        // ✅ If they are new, CREATE the account now
         if (pendingUser.isNewUser) {
             user = await User.create({
-                name: "FurEver Member", // Default name!
+                name: "FurEver Member", 
                 email: pendingUser.email,
                 role: pendingUser.role,
                 isEmailVerified: true 
             });
         } else {
-            // ✅ If they are returning, just grab their existing account
             user = await User.findOne({ email: pendingUser.email });
         }
 
-        pendingUsers.delete(email); // Free up memory
+        pendingUsers.delete(email); 
 
         res.status(200).json({
-            user: { id: user._id, name: user.name, email: user.email, role: user.role },
+            user: { id: user._id, name: user.name, email: user.email, role: user.role, profilePicture: user.profilePicture },
             token: generateToken(user._id)
         });
 
@@ -108,7 +101,6 @@ export const googleAuth = async (req, res) => {
         let user = await User.findOne({ email });
 
         if (!user) {
-            // 🚨 NEW: If they try to log in from the Log In page (no role selected), STOP THEM!
             if (!role) {
                 return res.status(403).json({ 
                     requireSignup: true, 
@@ -116,7 +108,6 @@ export const googleAuth = async (req, res) => {
                 });
             }
 
-            // Otherwise, they are coming from the Sign Up page where they safely picked a role!
             user = await User.create({ 
                 name, 
                 email, 
