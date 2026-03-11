@@ -5,10 +5,9 @@ import PublicLayout from "./layout/PublicLayout";
 import MemberLayout from "./layout/MemberLayout";
 
 /* Guards */
-import ProtectedRoute from "./routes/protectedRoute";
+import ProtectedRoute from "./routes/ProtectedRoute";
 import GuestRoute from "./routes/guestRoute";
 import AdminDashboard from "./pages/AdminDashboard";
-
 /* Public Pages */
 import LandingPage from "./pages/landing";
 import OurMission from "./pages/mission";
