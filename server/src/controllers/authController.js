@@ -1,64 +1,54 @@
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
-import nodemailer from 'nodemailer'; 
+import { Resend } from 'resend';
+
+
+// Initialize Resend with your API key
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET || 'fallback_secret', { expiresIn: '30d' });
 };
 
-const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,         // 👈 Switched to the cloud-friendly port
-    secure: false,     // 👈 Must be false for port 587 (it upgrades to secure automatically)
-    requireTLS: true,  // 👈 Forces the secure upgrade
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    },
-    family: 4,         // 👈 Keeps our IPv4 fix from earlier
-    logger: true,      // 👈 Turns on the hidden terminal logs!
-    debug: true        // 👈 Shows us exactly what Google says back
-});
-
 // 🚀 THE WAITING ROOM
 const pendingUsers = new Map();
 
-// --- THE NEW UNIFIED PASSWORDLESS FUNCTION ---
+// --- THE NEW RESEND OTP FUNCTION ---
 export const sendOtpCode = async (req, res) => {
     try {
         const { email, role } = req.body;
 
-        // 1. Check if they exist
         const existingUser = await User.findOne({ email });
         const isNewUser = !existingUser;
 
-        // 2. If it's a brand new user, they MUST provide a role
         if (isNewUser && !role) {
             return res.status(400).json({ message: "Please select an account type to sign up." });
         }
 
-        // 3. Generate 6-digit OTP
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // 4. Put them in the waiting room
         pendingUsers.set(email, {
             email,
-            role: isNewUser ? role : existingUser.role, // Use existing role if they are logging in
-            isNewUser, // We save this flag so we know whether to create an account later!
+            role: isNewUser ? role : existingUser.role,
+            isNewUser,
             otpCode,
             expiresAt: Date.now() + 10 * 60 * 1000 
         });
 
-        // 5. Send Email
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: email,
+        // 🌟 THE MAGIC API CALL 🌟
+        const { data, error } = await resend.emails.send({
+            from: 'FurEver App <onboarding@resend.dev>', // 👈 Must use this exact email for the free tier!
+            to: email, // 👈 Must be the same email you used to sign up for Resend!
             subject: isNewUser ? 'Welcome to FurEver - Verification Code' : 'FurEver - Login Code',
             html: `<h2>${isNewUser ? 'Welcome to FurEver!' : 'Welcome back!'}</h2>
                    <p>Your secure 6-digit code is: <strong>${otpCode}</strong></p>
                    <p>This code will expire in 10 minutes.</p>`
-        };
-        await transporter.sendMail(mailOptions);
+        });
+
+        if (error) {
+            console.error("Resend API Error:", error);
+            return res.status(500).json({ message: "Failed to send email via Resend" });
+        }
 
         res.status(200).json({ message: "Verification email sent", email });
 
