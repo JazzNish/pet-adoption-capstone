@@ -6,7 +6,7 @@ import MemberLayout from "./layout/MemberLayout";
 
 /* Guards */
 import ProtectedRoute from "./routes/ProtectedRoute";
-import GuestRoute from "./routes/guestRoute";
+import GuestRoute from "./routes/GuestRoute";
 import AdminDashboard from "./pages/AdminDashboard";
 /* Public Pages */
 import LandingPage from "./pages/landing";
