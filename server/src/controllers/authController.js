@@ -8,13 +8,16 @@ const generateToken = (id) => {
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // This tells Google we are using a secure, encrypted connection
+    port: 587,         // 👈 Switched to the cloud-friendly port
+    secure: false,     // 👈 Must be false for port 587 (it upgrades to secure automatically)
+    requireTLS: true,  // 👈 Forces the secure upgrade
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
-    family: 4
+    family: 4,         // 👈 Keeps our IPv4 fix from earlier
+    logger: true,      // 👈 Turns on the hidden terminal logs!
+    debug: true        // 👈 Shows us exactly what Google says back
 });
 
 // 🚀 THE WAITING ROOM
