@@ -9,8 +9,8 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import GuestRoute from "./routes/GuestRoute";
 import AdminDashboard from "./pages/AdminDashboard";
 /* Public Pages */
-import LandingPage from "./pages/landing";
-import OurMission from "./pages/mission";
+import LandingPage from "./pages/Landing";
+import OurMission from "./pages/Mission";
 import PetDetails from "./pages/PetDetails";
 import VerifyEmail from "./pages/VerifiedEmail";
 
