@@ -8,10 +8,10 @@ const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET || 'fallback_secret', { expiresIn: '30d' });
 };
 
-// 👇 The new Brevo Transporter!
+// 👇 The Firewall-Bypassing Transporter!
 const transporter = nodemailer.createTransport({
     host: 'smtp-relay.brevo.com',
-    port: 587,
+    port: 2525, // 👈 THE SECRET BACKDOOR PORT
     secure: false, 
     auth: {
         user: process.env.BREVO_USER,
