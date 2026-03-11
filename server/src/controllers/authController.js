@@ -1,19 +1,26 @@
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
 
 // Initialize Resend with your API key
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET || 'fallback_secret', { expiresIn: '30d' });
 };
 
-// 🚀 THE WAITING ROOM
+// 👇 The new Brevo Transporter!
+const transporter = nodemailer.createTransport({
+    host: 'smtp-relay.brevo.com',
+    port: 587,
+    secure: false, 
+    auth: {
+        user: process.env.BREVO_USER,
+        pass: process.env.BREVO_PASS
+    }
+});
+
 const pendingUsers = new Map();
 
-// --- THE NEW RESEND OTP FUNCTION ---
 export const sendOtpCode = async (req, res) => {
     try {
         const { email, role } = req.body;
@@ -35,20 +42,17 @@ export const sendOtpCode = async (req, res) => {
             expiresAt: Date.now() + 10 * 60 * 1000 
         });
 
-        // 🌟 THE MAGIC API CALL 🌟
-        const { data, error } = await resend.emails.send({
-            from: 'FurEver App <onboarding@resend.dev>', // 👈 Must use this exact email for the free tier!
-            to: email, // 👈 Must be the same email you used to sign up for Resend!
+        // 👇 Sending the email via Brevo
+        const mailOptions = {
+            from: `"FurEver" <${process.env.BREVO_USER}>`, 
+            to: email, // 👈 This will now work for ANY email address!
             subject: isNewUser ? 'Welcome to FurEver - Verification Code' : 'FurEver - Login Code',
             html: `<h2>${isNewUser ? 'Welcome to FurEver!' : 'Welcome back!'}</h2>
                    <p>Your secure 6-digit code is: <strong>${otpCode}</strong></p>
                    <p>This code will expire in 10 minutes.</p>`
-        });
-
-        if (error) {
-            console.error("Resend API Error:", error);
-            return res.status(500).json({ message: "Failed to send email via Resend" });
-        }
+        };
+        
+        await transporter.sendMail(mailOptions);
 
         res.status(200).json({ message: "Verification email sent", email });
 
