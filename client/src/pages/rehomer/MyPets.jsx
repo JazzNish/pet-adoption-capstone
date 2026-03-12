@@ -40,7 +40,7 @@ export default function MyPets() {
     const fetchPets = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(`https://pet-adoption-capstone.onrender.com/api/pets/my-pets/${user.id}`, {
+            const res = await fetch(`localhost:5000/api/pets/my-pets/${user.id}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -123,7 +123,7 @@ export default function MyPets() {
             
             const token = localStorage.getItem('token'); 
 
-            const res = await fetch('https://pet-adoption-capstone.onrender.com/api/pets', {
+            const res = await fetch('localhost:5000/api/pets', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',

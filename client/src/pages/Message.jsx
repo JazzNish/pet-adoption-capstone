@@ -11,7 +11,7 @@ export default function Messages() {
     useEffect(() => {
         const fetchInbox = async () => {
             try {
-                const res = await fetch('https://pet-adoption-capstone.onrender.com/api/messages/inbox', {
+                const res = await fetch('localhost:5000/api/messages/inbox', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {

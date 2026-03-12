@@ -30,7 +30,7 @@ export default function ProfileSettings() {
             if (!user.id) return;
             try {
                 // Ask the database for the absolute newest info
-                const res = await fetch(`https://pet-adoption-capstone.onrender.com/api/users/${user.id}/public`);
+                const res = await fetch(`localhost:5000/api/users/${user.id}/public`);
                 if (res.ok) {
                     const freshData = await res.json();
                     
@@ -95,7 +95,7 @@ export default function ProfileSettings() {
                 finalImageUrl = cloudinaryData.secure_url;
             }
 
-            const res = await fetch('https://pet-adoption-capstone.onrender.com/api/users/profile', {
+            const res = await fetch('localhost:5000/api/users/profile', {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -141,7 +141,7 @@ export default function ProfileSettings() {
             if (!cloudinaryRes.ok) throw new Error("ID upload failed");
 
             // 2. Send URL to backend to trigger "Pending" status
-            const res = await fetch('https://pet-adoption-capstone.onrender.com/api/users/submit-id', {
+            const res = await fetch('localhost:5000/api/users/submit-id', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',

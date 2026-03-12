@@ -23,14 +23,14 @@ export default function MyProfile() {
         const fetchMyData = async () => {
             if (!localUser?.id) return;
             try {
-                const userRes = await fetch(`https://pet-adoption-capstone.onrender.com/api/users/${localUser.id}/public`);
+                const userRes = await fetch(`localhost:5000/api/users/${localUser.id}/public`);
                 if (userRes.ok) {
                     const userData = await userRes.json();
                     setProfileUser(userData);
                     setAboutText(userData.about || "");
                 }
 
-                const petsRes = await fetch(`https://pet-adoption-capstone.onrender.com/api/pets/my-pets/${localUser.id}`);
+                const petsRes = await fetch(`localhost:5000/api/pets/my-pets/${localUser.id}`);
                 if (petsRes.ok) {
                     const petsData = await petsRes.json();
                     setUserPets(petsData);
@@ -49,7 +49,7 @@ export default function MyProfile() {
     const handleSaveAbout = async () => {
         setIsSaving(true);
         try {
-            const res = await fetch('https://pet-adoption-capstone.onrender.com/api/users/profile', {
+            const res = await fetch('localhost:5000/api/users/profile', {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',

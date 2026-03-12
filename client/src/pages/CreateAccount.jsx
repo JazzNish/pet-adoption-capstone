@@ -36,7 +36,7 @@ export default function Signup() {
         setIsLoading(true);
 
         try {   
-            const response = await fetch('https://pet-adoption-capstone.onrender.com/api/auth/send-otp', {
+            const response = await fetch('localhost:5000/api/auth/send-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, role })

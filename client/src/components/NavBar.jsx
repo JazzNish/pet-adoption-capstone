@@ -69,7 +69,7 @@ export default function NavBar() {
             {/* --- 1. THE SMART LOGO --- */}
             {/* If logged in, go to browse-pets. If logged out, go to home! */}
             <Link to={userInfo ? '/browse-pets' : '/'} onClick={handleHomeClick} className="flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-                <img src="/src/assets/FurEver.png" alt="FurEver Logo" className="h-7"/>
+                <img src="FurEver.png" alt="FurEver Logo" className="h-7"/>
                 <div className="flex items-center ml-2">
                     <h1 className="text-lg font-semibold text-title">FurEver</h1>
                 </div>

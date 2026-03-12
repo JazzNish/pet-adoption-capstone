@@ -27,7 +27,7 @@ function VerifyEmail() {
         setError("");
 
         try {
-            const response = await fetch('https://pet-adoption-capstone.onrender.com/api/auth/verify', {
+            const response = await fetch('localhost:5000/api/auth/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, code })
