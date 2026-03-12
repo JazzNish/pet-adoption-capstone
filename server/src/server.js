@@ -14,8 +14,13 @@ import applicationRoutes from './routes/applicationRoutes.js';
 dotenv.config();
 
 const app = express();
-
-app.use(cors());
+app.use(cors({
+    origin: [
+        "http://localhost:5173", // Allows you to test locally
+        "https://pet-adoption-capstone.vercel.app" // Allows your live Vercel site
+    ],
+    credentials: true
+}));
 app.use(express.json());
 
 app.get("/", (req, res) => {
