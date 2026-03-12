@@ -11,7 +11,7 @@ export default function AdoptionRequest() {
     useEffect(() => {
         const fetchRequests = async () => {
             try {
-                const res = await fetch('localhost:5000/api/applications/received', {
+                const res = await fetch('pet-adoption-capstone.vercel.app/api/applications/received', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -43,7 +43,7 @@ export default function AdoptionRequest() {
     // Function to handle clicking Approve or Reject
     const handleUpdateStatus = async (id, newStatus) => {
         try {
-            const res = await fetch(`localhost:5000/api/applications/${id}/status`, {
+            const res = await fetch(`pet-adoption-capstone.vercel.app/api/applications/${id}/status`, {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',

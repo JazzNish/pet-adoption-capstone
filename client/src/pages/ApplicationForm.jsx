@@ -24,7 +24,7 @@ export default function ApplicationForm() {
     useEffect(() => {
         const fetchPet = async () => {
             try {
-                const res = await fetch(`localhost:5000/api/pets/${petId}`);
+                const res = await fetch(`pet-adoption-capstone.vercel.app/api/pets/${petId}`);
                 if (res.ok) setPet(await res.json());
             } catch (error) {
                 console.error("Failed to load pet:", error);
@@ -40,7 +40,7 @@ export default function ApplicationForm() {
         setIsSubmitting(true);
 
         try {
-            const res = await fetch('localhost:5000/api/applications/submit', {
+            const res = await fetch('pet-adoption-capstone.vercel.app/api/applications/submit', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

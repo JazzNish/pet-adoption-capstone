@@ -36,7 +36,7 @@ function BrowsePets() {
     // --- FETCH PETS ---
     // --- FETCH PETS AND SAVED PETS ---
     useEffect(() => {
-        fetch("localhost:5000/api/pets")
+        fetch("pet-adoption-capstone.vercel.app/api/pets")
             .then((res) => res.json())
             .then((data) => {
                 setPets(data);
@@ -51,7 +51,7 @@ function BrowsePets() {
         const fetchSavedPets = async () => {
             if (!currentUser) return;
             try {
-                const res = await fetch('localhost:5000/api/users/saved-pets', {
+                const res = await fetch('pet-adoption-capstone.vercel.app/api/users/saved-pets', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -73,7 +73,7 @@ function BrowsePets() {
         }
 
         try {
-            const res = await fetch(`localhost:5000/api/users/save-pet/${petId}`, {
+            const res = await fetch(`pet-adoption-capstone.vercel.app/api/users/save-pet/${petId}`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

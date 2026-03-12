@@ -20,7 +20,7 @@ export default function PetDetails() {
     useEffect(() => {
         const fetchPetDetails = async () => {
             try {
-                const res = await fetch(`localhost:5000/api/pets/${id}`);
+                const res = await fetch(`pet-adoption-capstone.vercel.app/api/pets/${id}`);
                 if (res.ok) {
                     setPet(await res.json());
                 }

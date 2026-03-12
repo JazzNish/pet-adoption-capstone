@@ -12,7 +12,7 @@ export default function AdminDashboard() {
 
     const fetchPendingUsers = async () => {
         try {
-            const res = await fetch('localhost:5000/api/users/admin/pending', {
+            const res = await fetch('pet-adoption-capstone.vercel.app/api/users/admin/pending', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
@@ -30,7 +30,7 @@ export default function AdminDashboard() {
         if (!window.confirm(`Are you sure you want to ${action} this user?`)) return;
 
         try {
-            const res = await fetch(`localhost:5000/api/users/admin/${action}/${userId}`, {
+            const res = await fetch(`pet-adoption-capstone.vercel.app/api/users/admin/${action}/${userId}`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}` }
             });

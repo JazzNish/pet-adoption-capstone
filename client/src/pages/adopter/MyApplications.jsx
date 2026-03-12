@@ -14,7 +14,7 @@ export default function MyApplications() {
     useEffect(() => {
         const fetchApplications = async () => {
             try {
-                const res = await fetch('localhost:5000/api/applications/my-applications', {
+                const res = await fetch('pet-adoption-capstone.vercel.app/api/applications/my-applications', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
