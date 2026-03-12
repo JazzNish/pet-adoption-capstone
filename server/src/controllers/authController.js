@@ -6,12 +6,23 @@ const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET || 'fallback_secret', { expiresIn: '30d' });
 };
 
-// 👇 Back to the clean, original Gmail setup
+// 👇 The upgraded, production-ready Gmail setup
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // Use SSL to make Google happy
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
+    }
+});
+
+// 👇 Test the connection immediately when the server starts
+transporter.verify((error, success) => {
+    if (error) {
+        console.log("❌ Nodemailer connection failed:", error);
+    } else {
+        console.log("✅ Nodemailer is connected and ready to send emails!");
     }
 });
 
