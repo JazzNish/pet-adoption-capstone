@@ -17,14 +17,14 @@ export default function PublicProfile() {
         const fetchProfileData = async () => {
             try {
                 // 1. Fetch the user's public info
-                const userRes = await fetch(`pet-adoption-capstone.vercel.app/api/users/${id}/public`);
+                const userRes = await fetch(`https://pet-adoption-capstone.onrender.com/api/users/${id}/public`);
                 if (userRes.ok) {
                     const userData = await userRes.json();
                     setProfileUser(userData);
                 }
 
                 // 2. Fetch all pets posted by this user
-                const petsRes = await fetch(`pet-adoption-capstone.vercel.app/api/pets/my-pets/${id}`);
+                const petsRes = await fetch(`https://pet-adoption-capstone.onrender.com/api/pets/my-pets/${id}`);
                 if (petsRes.ok) {
                     const petsData = await petsRes.json();
                     setUserPets(petsData);

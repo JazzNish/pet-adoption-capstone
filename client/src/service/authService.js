@@ -1,4 +1,4 @@
-const API_URL = 'pet-adoption-capstone.vercel.app/api/auth'; // Change 5000 if your server runs on a different port
+const API_URL = 'https://pet-adoption-capstone.onrender.com/api/auth'; // Change 5000 if your server runs on a different port
 
 export const registerUser = async (userData) => {
     try {

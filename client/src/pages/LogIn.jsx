@@ -18,7 +18,7 @@ function LogIn(){
             const user = result.user;
 
             // Use a direct fetch so we can carefully read the error status!
-            const res = await fetch('pet-adoption-capstone.vercel.app/api/auth/google', {
+            const res = await fetch('https://pet-adoption-capstone.onrender.com/api/auth/google', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -65,7 +65,7 @@ function LogIn(){
         setIsLoading(true);
 
         try {
-            const response = await fetch('pet-adoption-capstone.vercel.app/api/auth/send-otp', {
+            const response = await fetch('https://pet-adoption-capstone.onrender.com/api/auth/send-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email }) 

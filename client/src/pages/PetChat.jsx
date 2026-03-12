@@ -22,10 +22,10 @@ export default function PetChat() {
         const fetchInitialData = async () => {
             try {
                 // 1. Fetch Pet & User Details (Only needs to happen once)
-                const petRes = await fetch(`pet-adoption-capstone.vercel.app/api/pets/${petId}`);
+                const petRes = await fetch(`https://pet-adoption-capstone.onrender.com/api/pets/${petId}`);
                 if (petRes.ok) setPet(await petRes.json());
 
-                const userRes = await fetch(`pet-adoption-capstone.vercel.app/api/users/${otherUserId}/public`);
+                const userRes = await fetch(`https://pet-adoption-capstone.onrender.com/api/users/${otherUserId}/public`);
                 if (userRes.ok) setOtherUser(await userRes.json());
 
                 // Fetch initial messages and turn off the loading spinner
@@ -40,7 +40,7 @@ export default function PetChat() {
         // This is the function that actually grabs the latest messages
         const fetchMessages = async () => {
             try {
-                const chatRes = await fetch(`pet-adoption-capstone.vercel.app/api/messages/${petId}/${otherUserId}`, {
+                const chatRes = await fetch(`https://pet-adoption-capstone.onrender.com/api/messages/${petId}/${otherUserId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (chatRes.ok) {
@@ -77,7 +77,7 @@ export default function PetChat() {
         };
 
         try {
-            const res = await fetch('pet-adoption-capstone.vercel.app/api/messages/send', {
+            const res = await fetch('https://pet-adoption-capstone.onrender.com/api/messages/send', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
