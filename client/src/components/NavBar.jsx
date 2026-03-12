@@ -10,9 +10,9 @@ export default function NavBar() {
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
     const popoverRef = useRef(null);
 
-    // Safely parse the user
+   // Safely parse the user and block the "undefined" phantom data
     const user = localStorage.getItem('furever_user');
-    const userInfo = user ? JSON.parse(user) : null;
+    const userInfo = (user && user !== "undefined") ? JSON.parse(user) : null;
 
     console.log("NAVBAR SEES THIS USER:", userInfo);
 
