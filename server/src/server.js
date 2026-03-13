@@ -11,7 +11,7 @@ import userRoutes from './routes/userRoutes.js';
 import messageRoute from './routes/messageRoutes.js';
 import applicationRoutes from './routes/applicationRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
-
+import reportRoutes from './routes/reportRoutes.js';
 dotenv.config();
 
 const app = express();
@@ -34,6 +34,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/messages', messageRoute);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/reports', reportRoutes);
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))

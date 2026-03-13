@@ -1,0 +1,122 @@
+import { useState, useEffect } from "react";
+import { FaCheck, FaTimes, FaIdCard } from "react-icons/fa";
+
+export default function AdminVerifications() {
+    const [pendingUsers, setPendingUsers] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [selectedImage, setSelectedImage] = useState(null); // For zooming in on the ID
+
+    useEffect(() => {
+        const fetchPending = async () => {
+            try {
+                const response = await fetch('http://localhost:5000/api/users/admin/pending', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setPendingUsers(data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch pending verifications:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchPending();
+    }, []);
+
+    const handleReview = async (userId, newStatus) => {
+        const action = newStatus === 'Verified' ? 'Approve' : 'Reject';
+        if (!window.confirm(`Are you sure you want to ${action} this ID?`)) return;
+
+        try {
+            const response = await fetch(`http://localhost:5000/api/users/admin/${userId}/verify`, {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}` 
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+
+            if (response.ok) {
+                // Remove the user from the pending list instantly
+                setPendingUsers(pendingUsers.filter(user => user._id !== userId));
+                setSelectedImage(null); // Close the image viewer if it was open
+            }
+        } catch (error) {
+            console.error("Error reviewing ID:", error);
+        }
+    };
+
+    return (
+        <div className="animate-[fade-in-up_0.5s_ease-in-out]">
+            <h1 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                <FaIdCard className="text-blue-500" /> Pending ID Verifications
+            </h1>
+
+            {isLoading ? (
+                <div className="p-8 text-center text-gray-500">Loading requests...</div>
+            ) : pendingUsers.length === 0 ? (
+                <div className="bg-white p-12 rounded-xl border-2 border-dashed border-gray-200 text-center text-gray-500">
+                    <FaCheck className="size-12 mx-auto text-green-400 mb-4 opacity-50" />
+                    <h3 className="text-xl font-bold text-gray-700">You are all caught up!</h3>
+                    <p>There are no pending ID verifications at this time.</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {pendingUsers.map(user => (
+                        <div key={user._id} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                            {/* ID Image Preview */}
+                            <div 
+                                className="h-48 bg-gray-100 cursor-pointer relative group"
+                                onClick={() => setSelectedImage(user.idImageUrl)}
+                            >
+                                {user.idImageUrl ? (
+                                    <img src={user.idImageUrl} alt="User ID" className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-gray-400">No Image Provided</div>
+                                )}
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <span className="text-white font-bold tracking-wider">CLICK TO ZOOM</span>
+                                </div>
+                            </div>
+                            
+                            {/* User Details */}
+                            <div className="p-5 flex-1 flex flex-col">
+                                <h3 className="font-bold text-lg text-gray-900">{user.name}</h3>
+                                <p className="text-sm text-gray-500 mb-4">{user.email}</p>
+                                <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Account Role</div>
+                                <p className="capitalize font-medium text-gray-700 mb-6">{user.role}</p>
+                                
+                                {/* Action Buttons */}
+                                <div className="mt-auto grid grid-cols-2 gap-3">
+                                    <button 
+                                        onClick={() => handleReview(user._id, 'Rejected')}
+                                        className="flex items-center justify-center gap-2 py-2.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl font-bold transition-colors"
+                                    >
+                                        <FaTimes /> Reject
+                                    </button>
+                                    <button 
+                                        onClick={() => handleReview(user._id, 'Verified')}
+                                        className="flex items-center justify-center gap-2 py-2.5 bg-green-50 text-green-600 hover:bg-green-100 rounded-xl font-bold transition-colors"
+                                    >
+                                        <FaCheck /> Approve
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* --- IMAGE ZOOM MODAL --- */}
+            {selectedImage && (
+                <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4" onClick={() => setSelectedImage(null)}>
+                    <img src={selectedImage} alt="Zoomed ID" className="max-w-full max-h-[90vh] rounded-lg object-contain" />
+                    <button className="absolute top-6 right-6 text-white text-xl font-bold p-4">Close</button>
+                </div>
+            )}
+        </div>
+    );
+}
