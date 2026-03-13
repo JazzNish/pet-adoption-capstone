@@ -70,7 +70,8 @@ export default function Signup() {
             else navigate("/my-pets");
 
         } catch (error) {
-            console.error("Signup Error:", error);
+            console.error("Google Signup Error:", error);
+            alert(error.message || "Google sign up failed. Please try again.");
             setIsLoading(false);
             
             if (error.code === 'auth/email-already-in-use') {

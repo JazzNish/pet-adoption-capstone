@@ -55,7 +55,9 @@ function LogIn(){
             }
         } catch (error) {
             console.error("Google Login Error:", error);
-            alert("Google Sign In encountered an error. Please try again.");
+            // 👇 Show the actual backend message in the alert!
+            alert(error.message || "Google sign in failed. Please try again.");
+            setIsLoading(false); // Make sure to stop the loading spinner if you have one
         }
     };
 

@@ -27,14 +27,21 @@ export const loginUser = async (userData) => {
 };
 
 export const googleAuth = async (userData) => {
-    try {
-        const response = await fetch(`${API_URL}/google`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(userData)
-        });
-        return await response.json();
-    } catch (error) {
-        return { message: "Network error occurred" };
+    // Make sure your fetch URL matches your actual backend URL!
+    const response = await fetch('https://pet-adoption-capstone.onrender.com/api/auth/google', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+    });
+
+    const data = await response.json();
+
+    // 👇 THE FIX: If the backend sends an error (like a 403 Ban), throw the exact message!
+    if (!response.ok) {
+        throw new Error(data.message || 'Authentication failed');
     }
+
+    return data;
 };
