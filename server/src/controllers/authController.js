@@ -118,6 +118,12 @@ export const googleAuth = async (req, res) => {
                 });
             }
 
+            if (user.isBanned) {
+                return res.status(403).json({ 
+                    message: "This account has been suspended by an administrator. Please contact support." 
+                });
+            }
+
             user = await User.create({ 
                 name, 
                 email, 
@@ -156,6 +162,12 @@ export const firebaseEmailLogin = async (req, res) => {
 
         if (!user) {
             return res.status(404).json({ message: "Account not found. Please sign up first." });
+        }
+
+        if (user.isBanned) {
+            return res.status(403).json({ 
+                message: "This account has been suspended by an administrator. Please contact support." 
+            });
         }
 
         // If found, send back their profile and a fresh token!

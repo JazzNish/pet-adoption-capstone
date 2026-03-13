@@ -38,7 +38,7 @@ export default function Messages() {
     if (isLoading) return <div className="min-h-screen flex justify-center items-center"><FaSpinner className="animate-spin size-12 text-star" /></div>;
 
     return (
-        <div className="min-h-[calc(100vh-80px)] bg-cover py-12 px-4 sm:px-6 lg:px-8 animate-[fade-in-up_0.4s_ease-out]">
+        <div className="min-h-[calc(100vh-80px)] py-12 px-4 sm:px-6 lg:px-8 animate-[fade-in-up_0.4s_ease-out]">
             <div className="max-w-4xl mx-auto">
                 
                 <div className="mb-8">

@@ -26,6 +26,10 @@ const authMiddleware = async (req, res, next) => {
                 return res.status(401).json({ message: 'User no longer exists' });
             }
 
+            if (req.user.isBanned) {
+                return res.status(403).json({ message: 'Account suspended. Access denied.' });
+            }
+
             next(); // Move on to the next middleware (which is your roleMiddleware!)
         } catch (error) {
             console.error("Auth Middleware Error:", error);
