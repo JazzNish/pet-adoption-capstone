@@ -1,20 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaUserAlt, FaBuilding, } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { IoArrowBackOutline} from 'react-icons/io5';
 
-// 👇 Updated Firebase imports for the Redirect method
-import { 
-    signInWithRedirect, 
-    getRedirectResult, 
-    createUserWithEmailAndPassword, 
-    updateProfile 
-} from "firebase/auth";
+// 👇 Import the Firebase registration function
+import { signInWithPopup, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth, provider } from "../firebase";
 import { googleAuth } from '../service/authService';
 
 export default function Signup() {
+    // 👇 1. Split the name state into First and Last
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
@@ -24,50 +20,6 @@ export default function Signup() {
     const [isLoading, setIsLoading] = useState(false);
 
     const navigate = useNavigate();
-
-    // 👇 THE CATCHER: This runs automatically when the page loads.
-    // If Google just sent them back, this grabs their profile!
-    useEffect(() => {
-        const catchGoogleRedirect = async () => {
-            try {
-                const result = await getRedirectResult(auth);
-                
-                if (result) {
-                    setIsLoading(true);
-                    const user = result.user;
-                    
-                    // Grab the role they picked before they went to Google
-                    const savedRole = sessionStorage.getItem("pending_role") || "adopter";
-
-                    const data = await googleAuth({
-                        name: user.displayName || "Furever Member", 
-                        email: user.email,
-                        imageUrl: user.photoURL, 
-                        role: savedRole
-                    });
-
-                    // Save token and user data locally
-                    localStorage.setItem("token", data.token);
-                    localStorage.setItem("furever_user", JSON.stringify(data.user));
-
-                    // Clean up the temporary storage
-                    sessionStorage.removeItem("pending_role");
-
-                    // Redirect to the correct dashboard
-                    if (data.user.role === "admin") navigate("/admin");
-                    else if (data.user.role === "adopter") navigate("/browse-pets");
-                    else navigate("/my-pets");
-                }
-            } catch (error) {
-                console.error("Google Redirect Error:", error);
-                alert("Google sign in failed. Please try again.");
-                setIsLoading(false);
-            }
-        };
-
-        catchGoogleRedirect();
-    }, [navigate]);
-
 
     const handleRegister = async (e) => {
         e.preventDefault();
@@ -90,22 +42,29 @@ export default function Signup() {
         setIsLoading(true);
 
         try {   
+            // 1. Create the user in Firebase
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const firebaseUser = userCredential.user;
+
+            // 👇 2. Combine the names for the database
             const fullName = `${firstName.trim()} ${lastName.trim()}`;
 
+            // 3. Update their Firebase profile with their full name
             await updateProfile(firebaseUser, { displayName: fullName });
 
+            // 4. Send the new user data to your Render backend to save in MongoDB
             const data = await googleAuth({
-                name: fullName, 
+                name: fullName, // <-- Send the combined name
                 email: firebaseUser.email,
                 imageUrl: "", 
                 role: role
             });
 
+            // 5. Save token and user data locally
             localStorage.setItem("token", data.token);
             localStorage.setItem("furever_user", JSON.stringify(data.user));
 
+            // 6. Redirect based on role
             if (data.user.role === "admin") navigate("/admin");
             else if (data.user.role === "adopter") navigate("/browse-pets");
             else navigate("/my-pets");
@@ -122,23 +81,38 @@ export default function Signup() {
         }
     };
 
-    // 👇 Updated Google Login
+    // Keep Google Login exactly as is
     const handleGoogleLogin = async () => {
         if (!role) {
             alert("Please select account type first");
             return;
         }
-        
-        // 1. Save their chosen role so we don't forget it!
-        sessionStorage.setItem("pending_role", role);
-        
-        // 2. Teleport them to Google (No popups involved)
-        await signInWithRedirect(auth, provider);
+        try {
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+
+            const data = await googleAuth({
+                name: user.displayName || "Furever Member", 
+                email: user.email,
+                imageUrl: user.photoURL, 
+                role: role
+            });
+
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("furever_user", JSON.stringify(data.user));
+
+            if (data.user.role === "admin") navigate("/admin");
+            else if (data.user.role === "adopter") navigate("/browse-pets");
+            else navigate("/my-pets");
+        } catch (error) {
+            console.error(error);
+            alert("Google sign in failed");
+        }
     };
 
     return (
         <div className="min-h-full flex bg-white animate-[fade-in-up_1s_ease-in-out]">
-            {/* --- LEFT COLUMN --- */}
+            {/* --- LEFT COLUMN (Kept exactly the same) --- */}
             <div className="hidden lg:flex flex-col w-1/2 relative items-center justify-center p-12 gap-2 overflow-hidden">
                 <div className="flex absolute top-10 left-6">
                     <Link to='/' title="Go back to homepage" className="hover:bg-gray-100 hover:text-black duration-400 p-2 rounded-full">
@@ -219,7 +193,7 @@ export default function Signup() {
                                 </div>
                             </div>
 
-                            {/* First Name & Last Name Fields */}
+                            {/* 👇 3. NEW First Name & Last Name Fields (Side by Side) */}
                             <div className="flex gap-4 w-full">
                                 <div className="w-1/2">
                                     <label className="text-sm font-semibold text-gray-700 block mb-1">First Name</label>
