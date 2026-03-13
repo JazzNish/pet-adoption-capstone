@@ -12,6 +12,7 @@ router.put('/profile', authMiddleware, updateProfile);
 router.post('/submit-id', authMiddleware, submitId);
 
 router.get('/:id/public', getPublicProfile);
+router.get('/', getAllUsers);
 
 router.get('/admin/pending', authMiddleware, roleMiddleware('admin'), getPendingUsers);
 router.put('/admin/approve/:id', authMiddleware, roleMiddleware('admin'), approveUser);
