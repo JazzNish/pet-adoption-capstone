@@ -107,3 +107,33 @@ export const deletePet = async (req, res) => {
         res.status(500).json({ message: "Failed to delete pet" });
     }
 };
+
+export const getAllPetsAdmin = async (req, res) => {
+    try {
+        // .populate() is magic! It goes to the User database and grabs the Rehomer's name 
+        // so we don't just see a random ID string in the admin table.
+        const pets = await Pet.find({})
+            .populate('rehomerId', 'name email') 
+            .sort({ createdAt: -1 });
+            
+        res.status(200).json(pets);
+    } catch (error) {
+        console.error("Fetch Pets Error:", error);
+        res.status(500).json({ message: "Server error while fetching pets." });
+    }
+};
+
+export const deletePetAdmin = async (req, res) => {
+    try {
+        const pet = await Pet.findById(req.params.id);
+        if (!pet) {
+            return res.status(404).json({ message: "Pet not found." });
+        }
+
+        await Pet.findByIdAndDelete(req.params.id);
+        res.status(200).json({ message: "Pet listing removed successfully." });
+    } catch (error) {
+        console.error("Delete Pet Error:", error);
+        res.status(500).json({ message: "Server error while deleting pet." });
+    }
+};
