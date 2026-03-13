@@ -110,7 +110,23 @@ export const googleAuth = async (req, res) => {
         const { name, email, role, imageUrl } = req.body; 
         let user = await User.findOne({ email });
 
-        if (!user) {
+        // 👇 1. IF THE USER ALREADY EXISTS
+        if (user) {
+            // Check if they are banned before letting them in
+            if (user.isBanned) {
+                return res.status(403).json({ 
+                    message: "This account has been suspended by an administrator. Please contact support." 
+                });
+            }
+
+            // Update profile picture if they have a new one from Google
+            if (imageUrl && !user.profilePicture) {
+                user.profilePicture = imageUrl;
+                await user.save();
+            }
+        } 
+        // 👇 2. IF THE USER DOES NOT EXIST (New Signup)
+        else {
             if (!role) {
                 return res.status(403).json({ 
                     requireSignup: true, 
@@ -118,12 +134,7 @@ export const googleAuth = async (req, res) => {
                 });
             }
 
-            if (user.isBanned) {
-                return res.status(403).json({ 
-                    message: "This account has been suspended by an administrator. Please contact support." 
-                });
-            }
-
+            // Create the brand new user (no need to check for bans here!)
             user = await User.create({ 
                 name, 
                 email, 
@@ -131,11 +142,9 @@ export const googleAuth = async (req, res) => {
                 isEmailVerified: true,
                 profilePicture: imageUrl
             });
-        } else if (imageUrl && !user.profilePicture) {
-            user.profilePicture = imageUrl;
-            await user.save();
         }
 
+        // 👇 3. LOG THEM IN
         res.status(200).json({
             user: { 
                 id: user._id, 
