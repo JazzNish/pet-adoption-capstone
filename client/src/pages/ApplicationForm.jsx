@@ -40,7 +40,7 @@ export default function ApplicationForm() {
         setIsSubmitting(true);
 
         try {
-            const res = await fetch('https://pet-adoption-capstone.onrender.com/api/applications/submit', {
+            const response = await fetch('http://localhost:5000/api/auth/admin-login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
