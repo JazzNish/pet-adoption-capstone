@@ -1,5 +1,5 @@
 import express from 'express';
-import { updateProfile, submitId, getPublicProfile, getPendingUsers, approveUser, rejectUser, toggleSavePet, getMySavedPets } from '../controllers/userController.js';
+import { updateProfile, submitId, getPublicProfile, getPendingUsers, approveUser, rejectUser, toggleSavePet, getMySavedPets, getAllUsers } from '../controllers/userController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 import roleMiddleware from '../middleware/roleMiddleware.js';
 
@@ -19,5 +19,6 @@ router.put('/admin/reject/:id', authMiddleware, roleMiddleware('admin'), rejectU
 
 router.put('/save-pet/:petId', authMiddleware, toggleSavePet);
 router.get('/saved-pets', authMiddleware, getMySavedPets);
+
 
 export default router;

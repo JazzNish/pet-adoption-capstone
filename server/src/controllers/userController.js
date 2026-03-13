@@ -161,3 +161,19 @@ export const getMySavedPets = async (req, res) => {
         res.status(500).json({ message: "Failed to fetch saved pets" });
     }
 };
+
+export const getAllUsers = async (req, res) => {
+    try {
+        // .find({}) gets everyone. 
+        // .select('-password') ensures we NEVER send passwords to the frontend!
+        // .sort({ createdAt: -1 }) puts the newest users at the top of the list.
+        const users = await User.find({})
+            .select('-password') 
+            .sort({ createdAt: -1 });
+
+        res.status(200).json(users);
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        res.status(500).json({ message: "Server error while fetching users." });
+    }
+};

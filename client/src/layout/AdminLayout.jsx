@@ -21,9 +21,18 @@ export default function AdminLayout() {
                 </div>
                 
                 <nav className="flex-1 p-4 flex flex-col gap-2">
+                    <nav className="flex-1 p-4 flex flex-col gap-2">
                     <Link to="/admin" className="p-3 hover:bg-gray-800 rounded-lg transition-colors font-medium">
-                        Dashboard
+                        Dashboard Home
                     </Link>
+                    {/* 👇 Added the new management links */}
+                    <Link to="/admin/users" className="p-3 hover:bg-gray-800 rounded-lg transition-colors font-medium">
+                        Manage Users
+                    </Link>
+                    <Link to="/admin/pets" className="p-3 hover:bg-gray-800 rounded-lg transition-colors font-medium">
+                        Manage Pets
+                    </Link>
+                </nav>
                     {/* You can add more admin links here later, like Manage Users or Review Pets! */}
                 </nav>
 
