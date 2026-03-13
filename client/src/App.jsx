@@ -78,9 +78,10 @@ function App() {
         <Route path="/saved-pets" element={<SavedPets />} />
       </Route>
 
+      {/* 🟣 ADMIN ROUTES (Protected securely inside AdminLayout) */}
       <Route element={<AdminLayout />}>
         <Route path="/admin" element={<AdminDashboard />} />
-        {/* Any future admin pages you make will automatically be secure if you put them here! */}
+        <Route path="/admin/users" element={<AdminUsers />} /> {/* 👇 Added this line! */}
       </Route>
 
       <Route path="/admin-login" element={<AdminLogin />} />
