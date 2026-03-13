@@ -138,7 +138,7 @@ export const googleAuth = async (req, res) => {
                 role: user.role,
                 profilePicture: user.profilePicture 
             },
-            token: generateToken(user._id)
+            token: generateToken(user._id) 
         });
     } catch (error) {
         console.error("Google Auth Error:", error);
