@@ -38,6 +38,9 @@ export default function AdminLayout() {
                     <Link to="/admin/reports" className="p-3 hover:bg-gray-800 rounded-lg transition-colors font-medium">
                         Reports
                     </Link>
+                    <Link to="/admin/settings" className="p-3 hover:bg-gray-800 rounded-lg transition-colors font-medium">
+                        Settings
+                    </Link>
                 </nav>
                     {/* You can add more admin links here later, like Manage Users or Review Pets! */}
                 </nav>

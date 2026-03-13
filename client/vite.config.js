@@ -4,4 +4,10 @@ import { defineConfig } from "vite"
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  server: {
+    // 👇 ADD THIS ENTIRE HEADERS BLOCK 👇
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+    },
+  },
 })

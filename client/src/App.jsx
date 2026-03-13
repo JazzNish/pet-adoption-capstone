@@ -14,6 +14,7 @@ import AdminUsers from "./pages/AdminUser";
 import AdminPets from "./pages/AdminPets";
 import AdminVerifications from "./pages/AdminVerification";
 import AdminReports from "./pages/AdminReport";
+import AdminSettings from "./pages/AdminSettings";
 
 /* Public Pages */
 import LandingPage from "./pages/Landing";
@@ -89,6 +90,7 @@ function App() {
         <Route path="/admin/pets" element={<AdminPets />} />
         <Route path="/admin/verifications" element={<AdminVerifications />} />
         <Route path="/admin/reports" element={<AdminReports />} />
+        <Route path="/admin/settings" element={<AdminSettings />} />
       </Route>
 
       <Route path="/admin-login" element={<AdminLogin />} />
