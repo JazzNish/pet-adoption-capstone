@@ -175,3 +175,37 @@ export const firebaseEmailLogin = async (req, res) => {
         res.status(500).json({ message: "Server error during login." });
     }
 };
+
+// 👇 The Secret Admin Portal Login
+export const adminLogin = async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        
+        // Define your Master Credentials here
+        const MASTER_USER = "furever_admin";
+        const MASTER_PASS = "panel_demo_123";
+
+        if (username === MASTER_USER && password === MASTER_PASS) {
+            // Create a temporary admin profile for the frontend
+            const adminProfile = {
+                id: "master-admin-001",
+                name: "System Admin",
+                email: "admin@furever.app",
+                role: "admin",
+                profilePicture: ""
+            };
+
+            // Hand them a valid token so the site lets them in
+            res.status(200).json({
+                user: adminProfile,
+                token: generateToken(adminProfile.id)
+            });
+        } else {
+            res.status(401).json({ message: "Invalid admin credentials." });
+        }
+
+    } catch (error) {
+        console.error("Admin Login Error:", error);
+        res.status(500).json({ message: "Server error." });
+    }
+};

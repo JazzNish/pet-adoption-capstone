@@ -3,11 +3,14 @@ import { Routes, Route } from "react-router-dom";
 /* Layouts */
 import PublicLayout from "./layout/PublicLayout";
 import MemberLayout from "./layout/MemberLayout";
+import AdminLayout from "./layout/AdminLayout";
 
 /* Guards */
 import ProtectedRoute from "./routes/ProtectedRoute";
 import GuestRoute from "./routes/GuestRoute";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminLogin from "./pages/AdminLogin";
+
 /* Public Pages */
 import LandingPage from "./pages/Landing";
 import OurMission from "./pages/Mission";
@@ -75,11 +78,12 @@ function App() {
         <Route path="/saved-pets" element={<SavedPets />} />
       </Route>
 
-
-      {/* 🟣 ADMIN ROUTES (Only accessible if isAdmin is true) */}
-      {isAdmin && (
+      <Route element={<AdminLayout />}>
         <Route path="/admin" element={<AdminDashboard />} />
-      )}
+        {/* Any future admin pages you make will automatically be secure if you put them here! */}
+      </Route>
+
+      <Route path="/admin-login" element={<AdminLogin />} />
 
     </Routes>
   );
