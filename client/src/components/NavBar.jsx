@@ -87,15 +87,6 @@ export default function NavBar() {
                     </>
                 )}
 
-                {/* ADMIN LINKS (Only visible to you!) */}
-                {userInfo?.role === 'admin' && (
-                    <>
-                        <Link to="/admin" className="text-red-600 font-bold hover:opacity-70 duration-300 flex items-center gap-1">
-                            Admin Panel
-                        </Link>
-                    </>
-                )}
-
                 {/* ADOPTER LINKS */}
                 {userInfo?.role === 'adopter' && (
                     <>

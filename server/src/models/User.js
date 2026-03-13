@@ -7,8 +7,7 @@ const userSchema = new mongoose.Schema({
     profilePicture: { type: String, default: "" },
     isEmailVerified: { type: Boolean, default: false },
     savedPets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Pet' }],
-    
-    // --- LAYER 2: ID/KYC VERIFICATION ---
+    isBanned: { type: Boolean, default: false },
     idVerificationStatus: { 
         type: String, 
         enum: ['unverified', 'pending', 'verified', 'rejected'], 

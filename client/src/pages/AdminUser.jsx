@@ -33,15 +33,45 @@ export default function AdminUsers() {
             
         if (!window.confirm(confirmMsg)) return;
 
-        // Note: We will build this toggle function in the backend soon!
-        alert(`Request sent to toggle ban for user: ${userId}`);
+        try {
+            const response = await fetch(`http://localhost:5000/api/users/${userId}/ban`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+
+            if (response.ok) {
+                // Instantly update the UI without refreshing the page!
+                setUsers(users.map(user => 
+                    user._id === userId ? { ...user, isBanned: !user.isBanned } : user
+                ));
+            } else {
+                const data = await response.json();
+                alert(data.message);
+            }
+        } catch (error) {
+            console.error("Error toggling ban:", error);
+        }
     };
 
     const handleDeleteUser = async (userId) => {
         if (!window.confirm("WARNING: Are you sure you want to permanently delete this user?")) return;
 
-        // Note: We will build this delete function in the backend soon!
-        alert(`Request sent to delete user: ${userId}`);
+        try {
+            const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+
+            if (response.ok) {
+                // Remove the user from the table instantly!
+                setUsers(users.filter(user => user._id !== userId));
+            } else {
+                const data = await response.json();
+                alert(data.message);
+            }
+        } catch (error) {
+            console.error("Error deleting user:", error);
+        }
     };
 
     return (
