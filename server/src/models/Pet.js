@@ -20,11 +20,7 @@ const petSchema = new mongoose.Schema({
             'A pet must have between 1 and 5 images.'
         ]
     },
-    rehomerId: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User', 
-        required: true 
-    },
+    // 👇 rehomerId has been completely removed!
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     status: { type: String, enum: ['Available', 'Pending', 'Adopted'], default: 'Available' }
 }, { timestamps: true });
