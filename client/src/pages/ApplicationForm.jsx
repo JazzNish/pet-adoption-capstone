@@ -40,13 +40,13 @@ export default function ApplicationForm() {
         setIsSubmitting(true);
 
         try {
-            const response = await fetch('http://localhost:5000/api/auth/admin-login', {
+            // 👇 1. FIXED THE URL: Now pointing to your live applications database!
+            const response = await fetch('https://pet-adoption-capstone.onrender.com/api/applications', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                // 👇 2. SEND THE FULL DATA TO BACKEND
                 body: JSON.stringify({
                     petId: pet._id,
                     rehomerId: pet.owner._id || pet.owner,
@@ -55,9 +55,10 @@ export default function ApplicationForm() {
                 })
             });
 
-            const data = await res.json();
+            // 👇 2. FIXED THE CRASH: Changed 'res' to 'response'
+            const data = await response.json();
 
-            if (res.ok) {
+            if (response.ok) {
                 alert("Application submitted successfully! The Rehomer will review it soon.");
                 navigate('/my-applications'); 
             } else {
