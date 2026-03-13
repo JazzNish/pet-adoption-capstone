@@ -10,7 +10,7 @@ export default function AdminUsers() {
         const fetchUsers = async () => {
             try {
                 // We will build this backend route next!
-                const response = await fetch('https://pet-adoption-capstone.onrender.com/api/users', {
+                const response = await fetch('http://localhost:5000/api/users', {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 if (response.ok) {
