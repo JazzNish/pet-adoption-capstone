@@ -10,7 +10,7 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import GuestRoute from "./routes/GuestRoute";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminLogin from "./pages/AdminLogin";
-import AdminUsers from "./pages/AdminUsers";
+import AdminUsers from "./pages/AdminUser";
 
 /* Public Pages */
 import LandingPage from "./pages/Landing";
