@@ -69,8 +69,9 @@ export default function AdminPets() {
                                 pets.map((pet) => (
                                     <tr key={pet._id} className="hover:bg-gray-50 transition-colors">
                                         <td className="p-4 flex items-center gap-4">
-                                            {pet.imageUrl ? (
-                                                <img src={pet.imageUrl} alt={pet.name} className="w-12 h-12 rounded-lg object-cover bg-gray-100" />
+                                            {/* 👇 Updated to look at your imageUrls array! */}
+                                            {pet.imageUrls && pet.imageUrls.length > 0 ? (
+                                                <img src={pet.imageUrls[0]} alt={pet.name} className="w-12 h-12 rounded-lg object-cover bg-gray-100" />
                                             ) : (
                                                 <div className="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center text-gray-400 text-xs">No img</div>
                                             )}
@@ -80,9 +81,9 @@ export default function AdminPets() {
                                             </div>
                                         </td>
                                         <td className="p-4">
-                                            {/* Using the populated data! */}
-                                            <div className="font-bold text-gray-700">{pet.rehomerId?.name || "Unknown"}</div>
-                                            <div className="text-sm text-gray-500">{pet.rehomerId?.email}</div>
+                                            {/* 👇 Updated to use pet.owner! */}
+                                            <div className="font-bold text-gray-700">{pet.owner?.name || "Unknown"}</div>
+                                            <div className="text-sm text-gray-500">{pet.owner?.email}</div>
                                         </td>
                                         <td className="p-4">
                                             <span className={`px-3 py-1 rounded-full text-xs font-bold ${

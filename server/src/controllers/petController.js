@@ -110,10 +110,9 @@ export const deletePet = async (req, res) => {
 
 export const getAllPetsAdmin = async (req, res) => {
     try {
-        // .populate() is magic! It goes to the User database and grabs the Rehomer's name 
-        // so we don't just see a random ID string in the admin table.
+        // 👇 Changed 'rehomerId' to 'owner' to match your schema!
         const pets = await Pet.find({})
-            .populate('rehomerId', 'name email') 
+            .populate('owner', 'name email') 
             .sort({ createdAt: -1 });
             
         res.status(200).json(pets);
