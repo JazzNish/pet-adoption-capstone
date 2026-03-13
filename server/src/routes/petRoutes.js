@@ -1,5 +1,5 @@
 import express from 'express';
-import { createPet, getRehomerPets, getAllPets, getPetById } from '../controllers/petController.js';
+import { createPet, getRehomerPets, getAllPets, getPetById, getAllPetsAdmin, deletePetAdmin } from '../controllers/petController.js';
 import authMiddleware from '../middleware/authMiddleware.js'; 
 import roleMiddleware from '../middleware/roleMiddleware.js';
 
@@ -15,13 +15,15 @@ router.post(
 
 router.get("/", getAllPets);
 
-/* GET REHOMER DASHBOARD PETS */
 router.get(
   "/my-pets/:ownerId",
   authMiddleware,
   roleMiddleware("rehomer"),
   getRehomerPets
 );
+
+router.get('/admin/all', getAllPetsAdmin);
+router.delete('/admin/:id', deletePetAdmin);
 
 router.get("/:id", getPetById);
 

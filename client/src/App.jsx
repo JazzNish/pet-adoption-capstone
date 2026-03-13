@@ -11,6 +11,8 @@ import GuestRoute from "./routes/GuestRoute";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminLogin from "./pages/AdminLogin";
 import AdminUsers from "./pages/AdminUser";
+import AdminPets from "./pages/AdminPets";
+
 
 /* Public Pages */
 import LandingPage from "./pages/Landing";
@@ -44,7 +46,7 @@ function App() {
   return (
     <Routes>
        
-      {/* 🔴 GUEST ONLY PAGES (Logged-in users get safely redirected away by GuestRoute) */}
+      {/* GUEST ONLY PAGES (Logged-in users get safely redirected away by GuestRoute) */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<GuestRoute><LandingPage /></GuestRoute>} />
         <Route path="/mission" element={<GuestRoute><OurMission /></GuestRoute>} />
@@ -57,7 +59,7 @@ function App() {
       <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
 
 
-      {/* 🟡 UNIVERSAL PAGES (Accessible to BOTH guests and logged-in members) */}
+      {/* UNIVERSAL PAGES (Accessible to BOTH guests and logged-in members) */}
       {/* MAGIC: If logged in, show MemberLayout (with profile pic). If not, show PublicLayout! */}
       <Route element={isAuthenticated ? <MemberLayout /> : <PublicLayout />}>
         <Route path="/browse-pets" element={<BrowsePets />} />
@@ -65,7 +67,7 @@ function App() {
       </Route>
 
 
-      {/* 🔵 MEMBER ONLY PAGES (Must be logged in to access) */}
+      {/* MEMBER ONLY PAGES (Must be logged in to access) */}
       <Route element={<ProtectedRoute><MemberLayout /></ProtectedRoute>}>
         <Route path="/messages" element={<Messages />} />
         <Route path="/my-applications" element={<MyApplications />} />
@@ -79,10 +81,11 @@ function App() {
         <Route path="/saved-pets" element={<SavedPets />} />
       </Route>
 
-      {/* 🟣 ADMIN ROUTES (Protected securely inside AdminLayout) */}
+      {/* DMIN ROUTES (Protected securely inside AdminLayout) */}
       <Route element={<AdminLayout />}>
         <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/users" element={<AdminUsers />} /> {/* 👇 Added this line! */}
+        <Route path="/admin/users" element={<AdminUsers />} />
+        <Route path="/admin/pets" element={<AdminPets />} />
       </Route>
 
       <Route path="/admin-login" element={<AdminLogin />} />
