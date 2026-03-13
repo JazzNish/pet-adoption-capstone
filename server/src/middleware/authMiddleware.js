@@ -12,8 +12,14 @@ const authMiddleware = async (req, res, next) => {
             // 2. Verify token
             const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
 
-            // 3. 🚨 THE CRITICAL FIX: Fetch the user from the database and attach it to req.user
-            // We use .select('-password') so we don't accidentally pass passwords around
+            // 👇 THE CRITICAL FIX: The Master Admin Bypass
+            if (decoded.id === 'master-admin-001') {
+                // Attach a temporary admin profile to the request
+                req.user = { _id: 'master-admin-001', role: 'admin' };
+                return next(); // Skip the database lookup and move on!
+            }
+
+            // 3. Normal User Flow: Fetch the user from the database
             req.user = await User.findById(decoded.id).select('-password');
 
             if (!req.user) {
@@ -22,7 +28,7 @@ const authMiddleware = async (req, res, next) => {
 
             next(); // Move on to the next middleware (which is your roleMiddleware!)
         } catch (error) {
-            console.error(error);
+            console.error("Auth Middleware Error:", error);
             res.status(401).json({ message: 'Not authorized, token failed' });
         }
     } else {
