@@ -3,12 +3,19 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FaUserAlt, FaBuilding, } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { IoArrowBackOutline} from 'react-icons/io5';
-import { signInWithPopup } from "firebase/auth";
+
+// 👇 Import the Firebase registration function
+import { signInWithPopup, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth, provider } from "../firebase";
 import { googleAuth } from '../service/authService';
 
 export default function Signup() {
+    // 👇 1. Split the name state into First and Last
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
     const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [role, setRole] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
@@ -22,71 +29,81 @@ export default function Signup() {
             return;
         }
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            alert("Please enter a valid email format");
+        if (password !== confirmPassword) {
+            alert("Passwords do not match!");
             return;
         }
 
-        if (!email.endsWith("@gmail.com") && !email.endsWith("@yahoo.com") && !email.endsWith("@outlook.com")) {
-            alert("Please use a major email provider (Gmail, Yahoo, Outlook).");
+        if (password.length < 6) {
+            alert("Password must be at least 6 characters long.");
             return;
         }
 
         setIsLoading(true);
 
         try {   
-            const response = await fetch('https://pet-adoption-capstone.onrender.com/api/auth/send-otp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, role })
+            // 1. Create the user in Firebase
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const firebaseUser = userCredential.user;
+
+            // 👇 2. Combine the names for the database
+            const fullName = `${firstName.trim()} ${lastName.trim()}`;
+
+            // 3. Update their Firebase profile with their full name
+            await updateProfile(firebaseUser, { displayName: fullName });
+
+            // 4. Send the new user data to your Render backend to save in MongoDB
+            const data = await googleAuth({
+                name: fullName, // <-- Send the combined name
+                email: firebaseUser.email,
+                imageUrl: "", 
+                role: role
             });
-            const data = await response.json();
 
-            if (!response.ok) {
-                alert(data.message); 
-                setIsLoading(false);
-                return;
-            }
+            // 5. Save token and user data locally
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("furever_user", JSON.stringify(data.user));
 
-            navigate(`/verify-email?email=${email}&role=${role}`);
+            // 6. Redirect based on role
+            if (data.user.role === "admin") navigate("/admin");
+            else if (data.user.role === "adopter") navigate("/browse-pets");
+            else navigate("/my-pets");
 
         } catch (error) {
-            console.error(error);
-            alert("Signup failed. Please try again.");
+            console.error("Signup Error:", error);
             setIsLoading(false);
+            
+            if (error.code === 'auth/email-already-in-use') {
+                alert("An account with this email already exists. Please head to the Log In page!");
+            } else {
+                alert("Failed to create account. Please try again.");
+            }
         }
     };
 
+    // Keep Google Login exactly as is
     const handleGoogleLogin = async () => {
         if (!role) {
             alert("Please select account type first");
             return;
         }
-
         try {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
 
-            // 👈 UPDATED: Sending the real name and Google profile picture!
             const data = await googleAuth({
-                name: user.displayName || "Furever Member", // Fallback just in case
+                name: user.displayName || "Furever Member", 
                 email: user.email,
-                imageUrl: user.photoURL, // Grabs the Google profile picture URL
+                imageUrl: user.photoURL, 
                 role: role
             });
 
             localStorage.setItem("token", data.token);
             localStorage.setItem("furever_user", JSON.stringify(data.user));
 
-            // Change your redirect logic to this:
-            if (data.user.role === "admin") {
-                navigate("/admin");
-            } else if (data.user.role === "adopter") {
-                navigate("/browse-pets");
-            } else {
-                navigate("/my-pets");
-            }
+            if (data.user.role === "admin") navigate("/admin");
+            else if (data.user.role === "adopter") navigate("/browse-pets");
+            else navigate("/my-pets");
         } catch (error) {
             console.error(error);
             alert("Google sign in failed");
@@ -95,8 +112,7 @@ export default function Signup() {
 
     return (
         <div className="min-h-full flex bg-white animate-[fade-in-up_1s_ease-in-out]">
-
-            {/* --- LEFT COLUMN (Role Selection & Hero) --- */}
+            {/* --- LEFT COLUMN (Kept exactly the same) --- */}
             <div className="hidden lg:flex flex-col w-1/2 relative items-center justify-center p-12 gap-2 overflow-hidden">
                 <div className="flex absolute top-10 left-6">
                     <Link to='/' title="Go back to homepage" className="hover:bg-gray-100 hover:text-black duration-400 p-2 rounded-full">
@@ -117,7 +133,6 @@ export default function Signup() {
                     <label className="text-sm font-bold text-gray-700 mb-3">Choose Account Type:</label>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-                        {/* Adopter Card */}
                         <div 
                             onClick={() => setRole('adopter')}
                             className={`cursor-pointer p-4 rounded-2xl border-2 transition-all duration-200 ${
@@ -135,7 +150,6 @@ export default function Signup() {
                             <p className="text-xs text-subtitle leading-tight">I want to adopt a pet.</p>
                         </div>
 
-                        {/* Pet Rehomer Card */}
                         <div 
                             onClick={() => setRole('rehomer')}
                             className={`cursor-pointer p-4 rounded-2xl border-2 transition-all duration-200 ${
@@ -157,7 +171,7 @@ export default function Signup() {
             </div>
 
         
-            {/* --- RIGHT COLUMN (The Universal Fast Form) --- */}
+            {/* --- RIGHT COLUMN --- */}
             <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 lg:p-16 h-screen overflow-y-auto">
                 <div className="w-full max-w-md">
                     <form className="flex flex-col gap-6" onSubmit={handleRegister}>
@@ -179,15 +193,63 @@ export default function Signup() {
                                 </div>
                             </div>
 
-                            {/* Email Address ONLY */}
+                            {/* 👇 3. NEW First Name & Last Name Fields (Side by Side) */}
+                            <div className="flex gap-4 w-full">
+                                <div className="w-1/2">
+                                    <label className="text-sm font-semibold text-gray-700 block mb-1">First Name</label>
+                                    <input 
+                                        type="text" 
+                                        value={firstName}
+                                        onChange={e => setFirstName(e.target.value)}
+                                        placeholder="John" 
+                                        className="w-full border-b border-gray-300 p-2 outline-none focus:border-gray-500 transition-colors" 
+                                        required 
+                                    />
+                                </div>
+                                <div className="w-1/2">
+                                    <label className="text-sm font-semibold text-gray-700 block mb-1">Last Name</label>
+                                    <input 
+                                        type="text" 
+                                        value={lastName}
+                                        onChange={e => setLastName(e.target.value)}
+                                        placeholder="Doe" 
+                                        className="w-full border-b border-gray-300 p-2 outline-none focus:border-gray-500 transition-colors" 
+                                        required 
+                                    />
+                                </div>
+                            </div>
+
                             <div>
                                 <label className="text-sm font-semibold text-gray-700 block mb-1">Email Address</label>
                                 <input 
                                     type="email" 
-                                    name="email"
                                     value={email}
                                     onChange={e => setEmail(e.target.value)}
                                     placeholder="john@example.com" 
+                                    className="w-full border-b border-gray-300 p-2 outline-none focus:border-gray-500 transition-colors" 
+                                    required 
+                                />
+                            </div>
+
+                            <div>
+                                <label className="text-sm font-semibold text-gray-700 block mb-1">Password</label>
+                                <input 
+                                    type="password" 
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
+                                    placeholder="••••••••" 
+                                    className="w-full border-b border-gray-300 p-2 outline-none focus:border-gray-500 transition-colors" 
+                                    required 
+                                />
+                            </div>
+
+                            <div>
+                                <label className="text-sm font-semibold text-gray-700 block mb-1">Confirm Password</label>
+                                <input 
+                                    type="password" 
+                                    value={confirmPassword}
+                                    onChange={e => setConfirmPassword(e.target.value)}
+                                    placeholder="••••••••" 
                                     className="w-full border-b border-gray-300 p-2 outline-none focus:border-gray-500 transition-colors" 
                                     required 
                                 />
@@ -205,14 +267,13 @@ export default function Signup() {
                         {/* CTA BUTTONS */}
                         <div className="flex flex-col gap-4 mt-2">
                             <button disabled={isLoading} type="submit" className="w-full bg-button hover:bg-hovered-button text-white font-semibold py-4 rounded-xl transition-all duration-400 cursor-pointer disabled:opacity-70">
-                                {isLoading ? "Sending Code..." : "Continue with Email"}
+                                {isLoading ? "Creating Account..." : "Create Account"}
                             </button>
                             
                             <p className="text-center text-sm text-gray-600 font-medium">
                                 Already have an account? <Link to="/log-in" className="text-link hover:underline font-bold">Sign In</Link>
                             </p>
                         </div>
-
                     </form>
                 </div>
             </div>

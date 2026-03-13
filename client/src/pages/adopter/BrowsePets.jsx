@@ -221,12 +221,12 @@ function BrowsePets() {
                     <div className="flex flex-col gap-2">
                         <label className="text-title font-bold text-xs text-gray-600">Gender</label>
                         <div className="flex bg-gray-100 p-1 rounded-lg">
-                            {["Any", "Male", "Female"].map(g => (
+                            {["All", "Male", "Female"].map(g => (
                                 <button
                                     key={g}
-                                    onClick={() => setGenderFilter(g === "Any" ? "" : g)}
+                                    onClick={() => setGenderFilter(g === "All" ? "" : g)}
                                     className={`flex-1 py-2 text-xs font-bold rounded-md transition-all duration-300 ${
-                                        genderFilter === (g === "Any" ? "" : g) 
+                                        genderFilter === (g === "All" ? "" : g) 
                                         ? 'bg-white text-[#F97316] shadow-sm' 
                                         : 'text-gray-500 hover:text-gray-800'
                                     }`}

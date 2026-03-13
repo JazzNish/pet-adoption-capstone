@@ -1,15 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { signInWithPopup } from "firebase/auth";
 import { auth, provider } from "../firebase";
-import { googleAuth } from "../service/authService";
+import { signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
 import { FcGoogle } from "react-icons/fc";
 import { IoArrowBackOutline } from "react-icons/io5";
 
 function LogIn(){
     const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-
     const navigate = useNavigate();
 
     const handleGoogleLogin = async () => {
@@ -65,25 +64,36 @@ function LogIn(){
         setIsLoading(true);
 
         try {
-            const response = await fetch('https://pet-adoption-capstone.onrender.com/api/auth/send-otp', {
+            // 1. Let Firebase check the email and password securely
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const firebaseUser = userCredential.user;
+
+            // 2. If Firebase says yes, tell your Render backend to grab their FurEver profile
+            const response = await fetch('https://pet-adoption-capstone.onrender.com/api/auth/firebase-login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email }) 
+                body: JSON.stringify({ email: firebaseUser.email }) 
             });
+            
             const data = await response.json();
 
             if (!response.ok) {
-                alert(data.message);
-                setIsLoading(false);
-                return;
+                throw new Error(data.message || "Could not find your profile in our database.");
             }
 
-            navigate(`/verify-email?email=${email}`);
+            // 3. Save the token and profile, just like Google Login does!
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("furever_user", JSON.stringify(data.user));
+
+            // 4. Route them to the right dashboard
+            if (data.user.role === "admin") navigate("/admin");
+            else if (data.user.role === "adopter") navigate("/browse-pets");
+            else navigate("/my-pets");
 
         } catch (error) {
             console.error("Login Error:", error);
-            alert("Failed to send code. Please try again.");
-            
+            // Firebase gives specific errors (like wrong password), so we can show them!
+            alert(error.message.replace("Firebase: ", "")); 
             setIsLoading(false);
         }
     };
@@ -126,32 +136,39 @@ function LogIn(){
                         </button>
                     </div>
                     
-                    <div className="flex items-center gap-4 w-full my-4">
-                        <div className="h-px bg-gray-200 flex-1"></div>
-                        <span className="text-title text-sm font-medium">
-                            Or sign in with email
-                        </span>
-                        <div className="h-px bg-gray-200 flex-1"></div>
-                    </div>
+                    <div className="flex flex-col gap-4 w-full">
+                        {/* Email Input */}
+                        <div className="flex flex-col gap-2 w-full">
+                            <label htmlFor='email' className="text-title font-semibold text-sm">Email address</label>
+                            <input 
+                                type="email" 
+                                id='email'
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="border-b border-gray-300 py-2 outline-none focus:border-gray-500 transition-colors"
+                                placeholder="you@example.com"
+                                required
+                            />
+                        </div>
 
-                    <div className="flex flex-col gap-2 w-full">
-                        <label htmlFor='email' className="text-title font-semibold text-sm">
-                            Email address
-                        </label>
-                        <input 
-                            type="email" 
-                            id='email'
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="border-b border-gray-300 py-2 outline-none focus:border-gray-500 transition-colors"
-                            placeholder="you@example.com"
-                            required
-                        />
+                        {/* 👇 NEW Password Input */}
+                        <div className="flex flex-col gap-2 w-full">
+                            <label htmlFor='password' className="text-title font-semibold text-sm">Password</label>
+                            <input 
+                                type="password" 
+                                id='password'
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="border-b border-gray-300 py-2 outline-none focus:border-gray-500 transition-colors"
+                                placeholder="••••••••"
+                                required
+                            />
+                        </div>
                     </div>
 
                     <div className="w-full mt-6">
                         <button disabled={isLoading} type="submit" className="flex justify-center w-full bg-button hover:bg-hovered-button duration-400 py-4 rounded-xl text-white font-semibold transition-colors shadow-sm disabled:opacity-70">
-                            {isLoading ? "Sending Code..." : "Continue with Email"}
+                            {isLoading ? "Signing In..." : "Log In"}
                         </button>
                     </div>
 

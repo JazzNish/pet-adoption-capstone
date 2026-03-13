@@ -145,3 +145,33 @@ export const googleAuth = async (req, res) => {
         res.status(500).json({ message: "Server error during Google auth" });
     }
 };
+
+// 👇 The new streamlined Firebase Email Login
+export const firebaseEmailLogin = async (req, res) => {
+    try {
+        const { email } = req.body;
+        
+        // Find the user in your MongoDB database
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ message: "Account not found. Please sign up first." });
+        }
+
+        // If found, send back their profile and a fresh token!
+        res.status(200).json({
+            user: { 
+                id: user._id, 
+                name: user.name, 
+                email: user.email, 
+                role: user.role, 
+                profilePicture: user.profilePicture 
+            },
+            token: generateToken(user._id)
+        });
+
+    } catch (error) {
+        console.error("Firebase Login Sync Error:", error);
+        res.status(500).json({ message: "Server error during login." });
+    }
+};
