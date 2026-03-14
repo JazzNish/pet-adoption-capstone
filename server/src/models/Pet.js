@@ -23,7 +23,7 @@ const petSchema = new mongoose.Schema({
     rehomerId: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'User', 
-        required: true 
+        required: false
     },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     status: { type: String, enum: ['Available', 'Pending', 'Adopted'], default: 'Available' }

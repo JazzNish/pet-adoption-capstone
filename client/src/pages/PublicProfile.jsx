@@ -16,18 +16,33 @@ export default function PublicProfile() {
     useEffect(() => {
         const fetchProfileData = async () => {
             try {
-                // 1. Fetch the user's public info
-                const userRes = await fetch(`https://pet-adoption-capstone.onrender.com/api/users/${id}/public`);
+                // 👇 Grab the token just in case we need it!
+                const token = localStorage.getItem('token');
+                const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+                // 1. Fetch User Info
+                const userRes = await fetch(`https://pet-adoption-capstone.onrender.com/api/users/${id}/public`, { headers });
                 if (userRes.ok) {
                     const userData = await userRes.json();
-                    setProfileUser(userData);
+                    if (userData && typeof userData === 'object') {
+                        setProfileUser(userData);
+                    }
                 }
 
-                // 2. Fetch all pets posted by this user
-                const petsRes = await fetch(`https://pet-adoption-capstone.onrender.com/api/pets/my-pets/${id}`);
+                // 2. Fetch Pets (WITH THE SKELETON KEY!)
+                const petsRes = await fetch(`https://pet-adoption-capstone.onrender.com/api/pets/my-pets/${id}`, { headers });
+                
                 if (petsRes.ok) {
                     const petsData = await petsRes.json();
-                    setUserPets(petsData);
+                    if (Array.isArray(petsData)) {
+                        setUserPets(petsData);
+                    } else if (petsData && Array.isArray(petsData.pets)) {
+                        setUserPets(petsData.pets); 
+                    } else {
+                        setUserPets([]); 
+                    }
+                } else {
+                    console.error("Backend blocked the pets fetch! Status:", petsRes.status);
                 }
             } catch (error) {
                 console.error("Failed to load profile:", error);
