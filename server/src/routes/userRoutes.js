@@ -17,7 +17,7 @@ router.get('/', getAllUsers);
 router.get('/admin/pending', authMiddleware, roleMiddleware('admin'), getPendingUsers);
 router.put('/admin/approve/:id', authMiddleware, roleMiddleware('admin'), approveUser);
 router.put('/admin/reject/:id', authMiddleware, roleMiddleware('admin'), rejectUser);
-router.put('/:id/ban', toggleBanUser); // 👇 New Ban Route
+router.put('/:id/ban', toggleBanUser);
 router.delete('/:id', deleteUser);
 
 router.put('/save-pet/:petId', authMiddleware, toggleSavePet);

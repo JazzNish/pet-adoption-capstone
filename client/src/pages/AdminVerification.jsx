@@ -26,26 +26,36 @@ export default function AdminVerifications() {
     }, []);
 
     const handleReview = async (userId, newStatus) => {
-        const action = newStatus === 'Verified' ? 'Approve' : 'Reject';
-        if (!window.confirm(`Are you sure you want to ${action} this ID?`)) return;
+        // Decide which word to show in the popup alert
+        const displayAction = newStatus === 'Verified' ? 'Approve' : 'Reject';
+        if (!window.confirm(`Are you sure you want to ${displayAction} this ID?`)) return;
+
+        // 👇 THE FIX: Decide which backend route to hit based on the button clicked!
+        const endpoint = newStatus === 'Verified' ? 'approve' : 'reject';
 
         try {
-            const response = await fetch(`https://pet-adoption-capstone.onrender.com/api/users/admin/${userId}/verify`, {
+            const response = await fetch(`https://pet-adoption-capstone.onrender.com/api/users/admin/${endpoint}/${userId}`, {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}` 
-                },
-                body: JSON.stringify({ status: newStatus })
+                }
+                // Notice we removed the body, because your backend controller 
+                // already knows what to do based on the URL!
             });
 
             if (response.ok) {
                 // Remove the user from the pending list instantly
                 setPendingUsers(pendingUsers.filter(user => user._id !== userId));
                 setSelectedImage(null); // Close the image viewer if it was open
+                alert(`ID successfully ${displayAction}d!`);
+            } else {
+                const data = await response.json();
+                alert(data.message || `Failed to ${displayAction} ID.`);
             }
         } catch (error) {
             console.error("Error reviewing ID:", error);
+            alert("An error occurred while communicating with the server.");
         }
     };
 
