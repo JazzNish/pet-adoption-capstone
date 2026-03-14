@@ -30,7 +30,7 @@ export const getMyApplications = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: "Failed to fetch your applications." });
     }
-};
+}; 
 
 // 3. Get applications for a Rehomer (People applying for my pets)
 export const getRehomerApplications = async (req, res) => {
