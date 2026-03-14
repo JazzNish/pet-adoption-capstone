@@ -143,14 +143,18 @@ export default function MyApplications() {
                                         {/* Pet Info */}
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-4">
-                                                <img src={app.pet?.imageUrl} alt={app.pet?.name} className="size-12 rounded-full object-cover border border-gray-200" />
+                                                {/* 👇 Updated to petId and imageUrls array! */}
+                                                <img 
+                                                    src={app.petId?.imageUrls?.[0] || app.petId?.imageUrl || "https://via.placeholder.com/150"} 
+                                                    alt={app.petId?.name} 
+                                                    className="size-12 rounded-full object-cover border border-gray-200" 
+                                                />
                                                 <div>
-                                                    <h4 className="font-bold text-[#1c1e21] text-base">{app.pet?.name}</h4>
-                                                    <p className="text-sm text-gray-500 font-medium">{app.pet?.breed}</p>
+                                                    <h4 className="font-bold text-[#1c1e21] text-base">{app.petId?.name || "Unknown Pet"}</h4>
+                                                    <p className="text-sm text-gray-500 font-medium">{app.petId?.breed}</p>
                                                 </div>
                                             </div>
                                         </td>
-
                                         {/* Date */}
                                         <td className="px-6 py-4 text-sm font-semibold text-[#1c1e21]">
                                             {new Date(app.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}

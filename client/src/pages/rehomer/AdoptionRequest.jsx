@@ -82,21 +82,23 @@ export default function AdoptionRequest() {
                                 {/* Top Section: Adopter & Pet Info */}
                                 <div className="flex flex-col sm:flex-row justify-between gap-6 border-b border-gray-100 pb-6 mb-6">
                                     <div className="flex items-center gap-4">
-                                        <img src={req.adopter?.profilePicture || "/src/assets/noUser.png"} alt="Adopter" className="size-14 rounded-full object-cover border border-gray-200" referrerPolicy="no-referrer" />
+                                        {/* 👇 Updated to adopterId! */}
+                                        <img src={req.adopterId?.profilePicture || "/src/assets/noUser.png"} alt="Adopter" className="size-14 rounded-full object-cover border border-gray-200" referrerPolicy="no-referrer" />
                                         <div>
-                                            <h3 className="font-bold text-[#1c1e21] text-lg">{req.adopter?.name}</h3>
-                                            <p className="text-sm text-gray-500 font-medium">{req.adopter?.email}</p>
+                                            <h3 className="font-bold text-[#1c1e21] text-lg">{req.adopterId?.name || "Unknown Adopter"}</h3>
+                                            <p className="text-sm text-gray-500 font-medium">{req.adopterId?.email}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100">
                                         <div className="text-right">
                                             <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Applying for</p>
-                                            <p className="font-bold text-[#1c1e21]">{req.pet?.name}</p>
+                                            {/* 👇 Updated to petId! */}
+                                            <p className="font-bold text-[#1c1e21]">{req.petId?.name}</p>
                                         </div>
-                                        <img src={req.pet?.imageUrl} alt="Pet" className="size-10 rounded-xl object-cover" />
+                                        {/* 👇 Updated to petId and imageUrls array! */}
+                                        <img src={req.petId?.imageUrls?.[0] || req.petId?.imageUrl || "https://via.placeholder.com/150"} alt="Pet" className="size-10 rounded-xl object-cover" />
                                     </div>
                                 </div>
-
                               {/* Middle Section: Application Answers */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
                                     {/* Small Info Badges */}
