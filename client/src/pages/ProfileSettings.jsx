@@ -26,27 +26,42 @@ export default function ProfileSettings() {
 
     // --- FETCH FRESH STATUS ON LOAD ---
     useEffect(() => {
+        if (!user.id) return;
+
         const fetchFreshStatus = async () => {
-            if (!user.id) return;
             try {
                 // Ask the database for the absolute newest info
                 const res = await fetch(`https://pet-adoption-capstone.onrender.com/api/users/${user.id}/public`);
                 if (res.ok) {
                     const freshData = await res.json();
                     
-                    // Update the screen!
-                    setIdVerificationStatus(freshData.idVerificationStatus);
-                    
-                    // Update LocalStorage silently in the background!
-                    const updatedUser = { ...user, idVerificationStatus: freshData.idVerificationStatus };
-                    localStorage.setItem('furever_user', JSON.stringify(updatedUser));
+                    // We only want to update if the status ACTUALLY changed 
+                    // (e.g. going from 'pending' to 'verified')
+                    setIdVerificationStatus((prevStatus) => {
+                        if (prevStatus !== freshData.idVerificationStatus) {
+                            // Update LocalStorage silently in the background!
+                            const updatedUser = { ...user, idVerificationStatus: freshData.idVerificationStatus };
+                            localStorage.setItem('furever_user', JSON.stringify(updatedUser));
+                            
+                            // Return the new status to update the screen instantly!
+                            return freshData.idVerificationStatus;
+                        }
+                        return prevStatus;
+                    });
                 }
             } catch (error) {
                 console.error("Failed to fetch fresh user data", error);
             }
         };
 
+        // 1. Check right away when they open the page
         fetchFreshStatus();
+
+        // 2. THE MAGIC: Silently check again every 5 seconds!
+        const intervalId = setInterval(fetchFreshStatus, 5000);
+
+        // 3. Clean up the timer if they leave the settings page
+        return () => clearInterval(intervalId);
     }, [user.id]);
 
 
