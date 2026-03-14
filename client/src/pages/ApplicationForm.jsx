@@ -37,10 +37,16 @@ export default function ApplicationForm() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // 🛡️ Safety Check: Ensure we actually have a token before trying to submit!
+        if (!token || token === "null" || token === "undefined") {
+            alert("Your session has expired. Please log out and log back in to apply.");
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
-            // 👇 1. FIXED THE URL: Now pointing to your live applications database!
             const response = await fetch('https://pet-adoption-capstone.onrender.com/api/applications', {
                 method: 'POST',
                 headers: {
@@ -55,8 +61,14 @@ export default function ApplicationForm() {
                 })
             });
 
-            // 👇 2. FIXED THE CRASH: Changed 'res' to 'response'
-            const data = await response.json();
+            // 👇 THE FIX: Safely parse the response, catching any HTML error pages!
+            let data;
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                data = await response.json();
+            } else {
+                data = { message: "Server returned an unexpected format. Ensure backend routes are correct." };
+            }
 
             if (response.ok) {
                 alert("Application submitted successfully! The Rehomer will review it soon.");
