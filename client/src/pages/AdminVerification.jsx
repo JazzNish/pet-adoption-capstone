@@ -80,10 +80,10 @@ export default function AdminVerifications() {
                             {/* ID Image Preview */}
                             <div 
                                 className="h-48 bg-gray-100 cursor-pointer relative group"
-                                onClick={() => setSelectedImage(user.idImageUrl)}
+                                onClick={() => setSelectedImage(user.idDocumentUrl)}
                             >
-                                {user.idImageUrl ? (
-                                    <img src={user.idImageUrl} alt="User ID" className="w-full h-full object-cover" />
+                                {user.idDocumentUrl ? (
+                                    <img src={user.idDocumentUrl} alt="User ID" className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-gray-400">No Image Provided</div>
                                 )}
