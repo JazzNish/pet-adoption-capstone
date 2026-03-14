@@ -53,7 +53,7 @@ export const getRehomerPets = async (req, res) => {
             return res.status(400).json({ message: "Invalid Owner ID sent to server." });
         }
 
-        const pets = await Pet.find({ owner: ownerId }).sort({ createdAt: -1 });
+        const pets = await Pet.find({ $or: [{ owner: ownerId }, { rehomerId: ownerId }] }).sort({ createdAt: -1 });
         res.status(200).json(pets);
     } catch (error) {
         console.error("Error fetching pets:", error);

@@ -29,18 +29,21 @@ export default function MyPets() {
         imageUrls: [] 
     });
 
-    // --- FETCH PETS ON LOAD ---
     useEffect(() => {
-        if (user && user.id) {
+        // 👇 Check for BOTH id types just to be safe!
+        if (user && (user._id || user.id)) {
             fetchPets();
         }
-    }, [user]);
+    }, []);
 
-    // --- FETCH PETS LOGIC ---
     const fetchPets = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(`https://pet-adoption-capstone.onrender.com/api/pets/my-pets/${user.id}`, {
+            // 👇 Grab the correct ID from the user object
+            const userId = user._id || user.id; 
+
+            // 👇 Use the correct userId in the URL!
+            const res = await fetch(`https://pet-adoption-capstone.onrender.com/api/pets/my-pets/${userId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();
@@ -48,7 +51,7 @@ export default function MyPets() {
                 setPets(data);
             }
         } catch (error) {
-            console.error("Network error! Backend didn't answer.");
+            console.error("Network error! Backend didn't answer.", error);
         }
     };
 
@@ -115,10 +118,11 @@ export default function MyPets() {
             const uploadedImageUrls = await Promise.all(uploadPromises);
 
             // NOW SEND EVERYTHING TO MONGODB
+            // NOW SEND EVERYTHING TO MONGODB
             const petPayload = { 
                 ...formData, 
                 imageUrls: uploadedImageUrls,
-                owner: user.id 
+                owner: user._id || user.id // 👈 Fixed this line too!
             };
             
             const token = localStorage.getItem('token'); 

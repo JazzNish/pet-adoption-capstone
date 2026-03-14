@@ -88,7 +88,7 @@ export default function MyProfile() {
     if (!profileUser) return <div className="min-h-screen flex justify-center items-center bg-cover">Please log in.</div>;
 
     return (
-        <div className="min-h-screen bg-cover pb-12 animate-[fade-in-up_0.4s_ease-out]">
+        <div className="min-h-screen pb-12 animate-[fade-in-up_0.4s_ease-out]">
             
             {/* --- HEADER --- */}
             <div className="h-64 w-full bg-button relative">

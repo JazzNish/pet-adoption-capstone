@@ -74,7 +74,7 @@ function App() {
         <Route path="/my-pets" element={<MyPets />} />
         <Route path="/adoption-requests" element={<AdoptionRequest />} />
         <Route path="/profile-settings" element={<ProfileSettings />} />
-        <Route path="/user/:id" element={<PublicProfile />} />
+        <Route path="/profile/:id" element={<PublicProfile />} />
         <Route path="/my-profile" element={<MyProfile />} />
         <Route path="/apply/:petId" element={<ApplicationForm />} />
         <Route path="/saved-pets" element={<SavedPets />} />
