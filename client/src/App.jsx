@@ -41,8 +41,7 @@ import SavedPets from "./pages/SavedPets";
 
 function App() {
   const user = JSON.parse(localStorage.getItem('furever_user'));
-  const isAdmin = user?.role === 'admin';
-  const isAuthenticated = !!user; // 👈 Quick check to see if they are logged in!
+  const isAuthenticated = !!user; //
 
   return (
     <Routes>

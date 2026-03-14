@@ -67,8 +67,16 @@ export const getAllPets = async (req, res) => {
 /* GET SINGLE PET BY ID */
 export const getPetById = async (req, res) => {
     try {
-        console.log("Looking for pet with ID:", req.params.id); // Add this tracker!
-        const pet = await Pet.findById(req.params.id).populate('owner', 'name profilePicture');
+        const { id } = req.params;
+
+        // 👇 THE BOUNCER: If the frontend sends 'undefined' or a fake ID, kick it out safely!
+        if (!id || id === 'undefined' || !mongoose.Types.ObjectId.isValid(id)) {
+            console.log("Blocked invalid ID from reaching database:", id);
+            return res.status(400).json({ message: "Invalid Pet ID format sent to server." });
+        }
+
+        console.log("Looking for pet with ID:", id); 
+        const pet = await Pet.findById(id).populate('owner', 'name profilePicture');
         
         if (!pet) {
             return res.status(404).json({ message: "Pet not found in database" });
