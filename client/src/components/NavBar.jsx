@@ -81,30 +81,30 @@ export default function NavBar() {
                 {/* PUBLIC LINKS */}
                 {!userInfo && (
                     <>
-                        <Link to="/" onClick={handleHomeClick} className="px-3 py-1 font-semibold text-subtitle hover:text-title hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2">Home</Link>
-                        <Link to="/browse-pets" className="px-3 py-1 font-semibold text-subtitle hover:text-title hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2">Browse Pets</Link>
-                        <a href="/#about" onClick={handleAbout} className="px-3 py-1 font-semibold text-subtitle hover:text-title hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2">About</a>
+                        <Link to="/" onClick={handleHomeClick} className="px-3 py-1.5 font-semibold text-subtitle hover:text-title hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2">Home</Link>
+                        <Link to="/browse-pets" className="px-3 py-1.5 font-semibold text-subtitle hover:text-title hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2">Browse Pets</Link>
+                        <a href="/#about" onClick={handleAbout} className="px-3 py-1.5 font-semibold text-subtitle hover:text-title hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2">About</a>
                     </>
                 )}
 
                 {/* ADOPTER LINKS */}
                 {userInfo?.role === 'adopter' && (
                     <>
-                        <Link to="/browse-pets" className="px-3 py-1 font-semibold text-subtitle hover:text-title hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2">Browse Pets</Link>
-                        <Link to="/my-applications" className="px-3 py-1 font-semibold text-subtitle hover:text-title hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2">My Applications</Link>
-                        <Link onClick={() => setIsPopoverOpen(false)} to="/messages" className="px-3 py-1 font-semibold text-subtitle hover:text-title hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2">
+                        <Link to="/browse-pets" className="px-3 py-1.5 font-semibold text-subtitle hover:text-title hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2">Browse Pets</Link>
+                        <Link to="/my-applications" className="px-3 py-1.5 font-semibold text-subtitle hover:text-title hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2">My Applications</Link>
+                        <Link onClick={() => setIsPopoverOpen(false)} to="/messages" className="px-3 py-1.5 font-semibold text-subtitle hover:text-title hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2">
                             Messages
                         </Link>
-                        <Link to="/saved-pets" className="px-3 py-1 font-semibold text-subtitle hover:text-title hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2">Saved Pets</Link>
+                        <Link to="/saved-pets" className="px-3 py-1.5 font-semibold text-subtitle hover:text-title hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2">Saved Pets</Link>
                     </>
                 )}
 
                 {/* REHOMER LINKS */}
                 {userInfo?.role === 'rehomer' && (
                     <>
-                        <Link to="/my-pets" className="px-3 py-1 font-semibold text-subtitle hover:text-title hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2">My Pets</Link>
-                        <Link to="/adoption-requests" className="px-3 py-1 font-semibold text-subtitle hover:text-title hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2">Adoption Requests</Link>
-                        <Link onClick={() => setIsPopoverOpen(false)} to="/messages" className="px-3 py-1 font-semibold text-subtitle hover:text-title hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2">
+                        <Link to="/my-pets" className="px-3 py-1.5 font-semibold text-subtitle hover:text-title hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2">My Pets</Link>
+                        <Link to="/adoption-requests" className="px-3 py-1.5 font-semibold text-subtitle hover:text-title hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2">Adoption Requests</Link>
+                        <Link onClick={() => setIsPopoverOpen(false)} to="/messages" className="px-3 py-1.5 font-semibold text-subtitle hover:text-title hover:bg-gray-100 rounded-xl transition-colors flex items-center gap-2">
                              Messages
                         </Link>
                     </>

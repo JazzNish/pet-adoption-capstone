@@ -19,27 +19,33 @@ export default function PetDetails() {
 
     // 👇 ADD THIS NEW EFFECT: Silently grab their freshest verification status!
     useEffect(() => {
-        const fetchFreshUser = async () => {
-            if (!currentUser || !currentUser.id) return;
+        const fetchPetDetails = async () => {
             try {
-                const res = await fetch(`https://pet-adoption-capstone.onrender.com/api/users/${currentUser.id}/public`);
+                const res = await fetch(`https://pet-adoption-capstone.onrender.com/api/pets/${id}`);
                 if (res.ok) {
-                    const freshData = await res.json();
+                    const data = await res.json();
                     
-                    // If the database says they are verified now, update the page instantly!
-                    if (freshData.idVerificationStatus !== currentUser.idVerificationStatus) {
-                        const updatedUser = { ...currentUser, idVerificationStatus: freshData.idVerificationStatus };
-                        setCurrentUser(updatedUser); // Updates the button on the screen
-                        localStorage.setItem('furever_user', JSON.stringify(updatedUser)); // Updates browser memory
+                    // 🕵️‍♂️ Tracker so we can see EXACTLY what the database sent!
+                    console.log("DATABASE PET DATA:", data);
+
+                    // 🛡️ The Safety Wrapper: Unwraps the data if it's hiding!
+                    if (Array.isArray(data)) {
+                        setPet(data[0]); // If it's an array, grab the first pet
+                    } else if (data && data.pet) {
+                        setPet(data.pet); // If it's wrapped in a 'pet' object, unwrap it
+                    } else {
+                        setPet(data); // If it's perfectly normal, use it as is
                     }
                 }
             } catch (error) {
-                console.error("Failed to check verification status", error);
+                console.error("Failed to fetch pet details:", error);
+            } finally {
+                setIsLoading(false);
             }
         };
 
-        fetchFreshUser();
-    }, [currentUser?.id]);
+        fetchPetDetails();
+    }, [id]);
 
     if (isLoading) return <div className="min-h-screen flex justify-center items-center"><FaSpinner className="animate-spin size-12 text-[#1c1e21]" /></div>;
     
