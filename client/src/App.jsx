@@ -20,7 +20,6 @@ import AdminSettings from "./pages/AdminSettings";
 import LandingPage from "./pages/Landing";
 import OurMission from "./pages/Mission";
 import PetDetails from "./pages/PetDetails";
-import VerifyEmail from "./pages/VerifiedEmail";
 
 /* Auth Pages */
 import LogIn from "./pages/LogIn";
@@ -52,7 +51,6 @@ function App() {
       <Route element={<PublicLayout />}>
         <Route path="/" element={<GuestRoute><LandingPage /></GuestRoute>} />
         <Route path="/mission" element={<GuestRoute><OurMission /></GuestRoute>} />
-        <Route path="/verify-email" element={<GuestRoute><VerifyEmail /></GuestRoute>} />
       </Route>
 
       {/* Auth Pages (Also Guest Only) */}
