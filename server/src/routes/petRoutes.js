@@ -17,7 +17,6 @@ router.get("/", getAllPets);
 
 router.get(
   "/my-pets/:ownerId",
-  authMiddleware,
   roleMiddleware("rehomer"),
   getRehomerPets
 );
