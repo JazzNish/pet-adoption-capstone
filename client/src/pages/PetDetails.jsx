@@ -53,19 +53,17 @@ export default function PetDetails() {
     if (!pet) return <div className="min-h-screen flex justify-center items-center text-xl font-bold">Pet not found.</div>;
 
     return (
-        <div className="min-h-[calc(100vh-80px)] bg-[#fdfdfd] py-10 px-4 sm:px-6 lg:px-8 animate-[fade-in-up_0.4s_ease-out]">
-            <div className="max-w-6xl mx-auto">
-                
-                {/* Back Button */}
-                <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-500 hover:text-[#1c1e21] transition-colors font-bold mb-6">
-                    <FaArrowLeft /> Back to Browse
-                </button>
+        <div className="min-h-[calc(100vh-80px)] bg-white py-10 px-4 sm:px-6 lg:px-8 animate-[fade-in-up_0.4s_ease-out] ">
+            <div className="max-w-6xl mx-auto ">
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 relative">
                     
                     {/* LEFT COLUMN: Photos */}
-                    <div className="space-y-4 lg:sticky lg:top-24 h-fit">
+                    <div className="space-y-4 lg:sticky lg:top-24 h-fit ">
                         {/* Main Big Image (Now Clickable!) */}
+                        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-500 hover:text-[#1c1e21] transition-colors font-bold mb-6">
+                            <FaArrowLeft /> Back to Browse
+                        </button>
                         <div 
                             className="aspect-square rounded-3xl overflow-hidden shadow-sm border border-gray-100 bg-gray-50 relative group cursor-pointer"
                             onClick={() => setIsModalOpen(true)}
@@ -104,33 +102,33 @@ export default function PetDetails() {
                         
                         {/* Header: Name & Location */}
                         <div className="mb-6">
-                            <h1 className="text-4xl font-black text-[#1c1e21] mb-2">{pet.name}</h1>
+                            <h1 className="text-2xl font-bold text-title mb-2">{pet.name}</h1>
                             <p className="flex items-center gap-2 text-gray-500 font-bold text-lg">
-                                <FaMapMarkerAlt className="text-red-500" /> {pet.location || "Location not specified"}
+                                <FaMapMarkerAlt className="text-subtitle" /> {pet.location || "Location not specified"}
                             </p>
                         </div>
 
                         {/* Quick Info Grid */}
-                        <div className="grid grid-cols-4 gap-4 mb-8">
-                            <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
-                                <FaPaw className="size-6 text-blue-500 mb-2" />
-                                <span className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Breed</span>
-                                <span className="font-bold text-[#1c1e21]">{pet.breed || "Mixed"}</span>
+                        <div className="grid grid-cols-4 gap-4 mb-5">
+                            <div className="p-4 rounded-2xl flex flex-col items-center justify-center text-center">
+                                <FaPaw className="size-6 text-subtitle mb-2" />
+                                <span className="text-xs text-subtitle font-bold uppercase tracking-wider mb-1">Breed</span>
+                                <span className="font-semibold text-title">{pet.breed || "Mixed"}</span>
                             </div>
-                            <div className="bg-orange-50/50 border border-orange-100 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
-                                <FaBirthdayCake className="size-6 text-orange-500 mb-2" />
+                            <div className="p-4 rounded-2xl flex flex-col items-center justify-center text-center">
+                                <FaBirthdayCake className="size-6 text-subtitle mb-2" />
                                 <span className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Age</span>
-                                <span className="font-bold text-[#1c1e21]">{pet.age ? `${pet.age} yrs` : "Unknown"}</span>
+                                <span className="font-semibold text-title">{pet.age ? `${pet.age} yrs` : "Unknown"}</span>
                             </div>
-                            <div className="bg-purple-50/50 border border-purple-100 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
-                                <FaVenusMars className="size-6 text-purple-500 mb-2" />
+                            <div className="p-4 rounded-2xl flex flex-col items-center justify-center text-center">
+                                <FaVenusMars className="size-6 text-subtitle mb-2" />
                                 <span className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Gender</span>
-                                <span className="font-bold text-[#1c1e21]">{pet.gender || "Unknown"}</span>
+                                <span className="font-semibold text-title">{pet.gender || "Unknown"}</span>
                             </div>
-                            <div className="bg-emerald-50/50 border border-emerald-100 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
-                                <FaWeightHanging className="size-6 text-emerald-500 mb-2" />
+                            <div className="p-4 rounded-2xl flex flex-col items-center justify-center text-center">
+                                <FaWeightHanging className="size-6 text-subtitle mb-2"  />
                                 <span className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Weight</span>
-                                <span className="font-bold text-[#1c1e21]">{pet.weight ? `${pet.weight} ${pet.weightUnit}` : "Unknown"}</span>
+                                <span className="font-semibold text-title">{pet.weight ? `${pet.weight} ${pet.weightUnit}` : "Unknown"}</span>
                             </div>
                         </div>
 
@@ -139,7 +137,7 @@ export default function PetDetails() {
                             <h2 className="text-xl font-black text-[#1c1e21] flex items-center gap-2 mb-3">
                                 <FaInfoCircle className="text-gray-400" /> About {pet.name}
                             </h2>
-                            <p className="text-gray-600 leading-relaxed font-medium bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                            <p className="text-subtitle font-medium bg-white p-4 border-b border-gray-200">
                                 {pet.description || "No description provided by the rehomer."}
                             </p>
                         </div>
@@ -149,7 +147,7 @@ export default function PetDetails() {
                             <h2 className="text-xl font-black text-[#1c1e21] flex items-center gap-2 mb-3">
                                 <FaStethoscope className="text-gray-400" /> Health & Medical
                             </h2>
-                            <p className="text-gray-600 leading-relaxed font-medium bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                            <p className="text-subtitle font-medium bg-white p-4 border-b border-gray-200">
                                 {pet.healthInfo || "Vaccinated, dewormed, and in good health."}
                             </p>
                         </div>
@@ -157,7 +155,7 @@ export default function PetDetails() {
                         {/* 👇 THE CLICKABLE REHOMER PROFILE CARD 👇 */}
                         <Link 
                             to={`/profile/${pet.owner?._id}`} 
-                            className="mb-8 p-5 bg-gray-50 hover:bg-gray-100 transition-all rounded-2xl border border-gray-200 flex items-center justify-between group block shadow-sm hover:shadow-md cursor-pointer"
+                             className="flex justify-between items-center text-subtitle font-medium bg-white p-4 border-b border-gray-200"
                         >
                             <div className="flex items-center gap-4">
                                 <img 
@@ -216,7 +214,7 @@ export default function PetDetails() {
                 </div>
             </div>
 
-            {/* 👇 FULL SCREEN IMAGE MODAL 👇 */}
+            {/* FULL SCREEN IMAGE MODAL */}
             {isModalOpen && (
                 <div 
                     className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm cursor-zoom-out animate-[fade-in_0.2s_ease-out]"

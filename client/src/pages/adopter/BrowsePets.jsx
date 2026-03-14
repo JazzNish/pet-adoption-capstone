@@ -166,13 +166,13 @@ function BrowsePets() {
         <>
         <section className="flex animate-[fade-in-up_0.5s_ease-out]">  
             {/* SIDEBAR */}
-            <section className="my-2 mx-4 w-72 fixed h-[calc(100vh-100px)] overflow-y-auto flex border-2 border-gray-200 rounded-xl bg-white shadow-sm">
+            <section className="my-2 mx-4 w-72 fixed h-[calc(100vh-100px)] overflow-y-auto flex border border-gray-200 rounded-xl bg-white">
                 <div className="w-full px-5 flex flex-col gap-6 text-sm py-6">
                     
                     {/* Filter Header & Reset Button */}
                     <div className="flex justify-between items-center">
                         <span className="text-title font-bold text-xs tracking-wider uppercase text-gray-500">Filters</span>
-                        <button onClick={handleReset} className="text-[#F97316] hover:opacity-50 cursor-pointer text-xs font-bold transition-opacity">
+                        <button onClick={handleReset} className="text-subtitle bg-gray-100 p-1 rounded-md cursor-pointer text-xs font-bold transition-opacity">
                             Reset All
                         </button>
                     </div>
@@ -239,7 +239,7 @@ function BrowsePets() {
                                     onClick={() => setGenderFilter(g === "All" ? "" : g)}
                                     className={`flex-1 py-2 text-xs font-bold rounded-md transition-all duration-300 ${
                                         genderFilter === (g === "All" ? "" : g) 
-                                        ? 'bg-white text-[#F97316] shadow-sm' 
+                                        ? 'bg-white text-title shadow-sm' 
                                         : 'text-gray-500 hover:text-gray-800'
                                     }`}
                                 >
@@ -255,7 +255,7 @@ function BrowsePets() {
                     <div className="flex flex-col gap-2">
                         <div className="flex justify-between items-center">
                             <label className="text-title font-bold text-xs text-gray-600">Max Age</label>
-                            <span className="text-[#F97316] font-bold text-xs bg-[#F97316]/10 px-2 py-1 rounded-md">
+                            <span className="text-subtitle font-bold text-xs bg-gray-100 px-2 py-1 rounded-md">
                                 {maxAge === "20" ? "Any Age" : `Up to ${maxAge} yrs`}
                             </span>
                         </div>
@@ -266,7 +266,7 @@ function BrowsePets() {
                             step="1"
                             value={maxAge} 
                             onChange={(e) => setMaxAge(e.target.value)}
-                            className="w-full accent-[#F97316] mt-2 cursor-pointer"
+                            className="w-full accent-title mt-2 cursor-pointer"
                         />
                         <div className="flex justify-between text-[10px] text-gray-400 font-semibold px-1 mt-1">
                             <span>1 yr</span>
@@ -281,13 +281,13 @@ function BrowsePets() {
             <section className="flex flex-col gap-6 my-4 ml-80 w-full pr-8">
                 
                 {/* Header */}
-                <div className="flex justify-between mx-2 items-center bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                <div className="flex justify-between mx-2 items-center py-6">
                     <div>
-                        <h2 className="text-3xl font-extrabold text-title mb-1">Available Pets</h2>
-                        <p className="text-subtitle font-medium text-gray-500">Help give a loving animal their forever home.</p>
+                        <h2 className="text-2xl font-extrabold text-title mb-1">Available Pets</h2>
+                        <p className="text-subtitle font-medium">Help give a loving animal their forever home.</p>
                     </div>
-                    <div className="bg-[#F97316]/10 px-4 py-2 rounded-xl border border-[#F97316]/20">
-                        <p className="text-[#F97316] font-bold">{filteredPets.length} pets found</p> 
+                    <div className="bg-white px-4 py-2 rounded-xl border border-gray-200">
+                        <p className="text-subtitle font-bold">{filteredPets.length} pets found</p> 
                     </div>
                 </div>
 
@@ -306,7 +306,7 @@ function BrowsePets() {
                             </button>
                         </div>
                     ) : (
-                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                             {filteredPets.map(pet => (
                                 <PetCard 
                                     key={pet._id}

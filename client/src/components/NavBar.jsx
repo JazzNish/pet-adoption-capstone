@@ -64,7 +64,7 @@ export default function NavBar() {
     }, []);
 
     return (
-        <nav className="flex px-6 py-2 bg-white justify-between items-center mx-10 mt-2 rounded-full border border-gray-300 shadow-sm sticky top-2 z-50">
+        <nav className="flex px-6 py-2 bg-white justify-between items-center mx-10 mt-2 rounded-full border border-gray-300 shadow-sm sticky top-2">
 
             {/* --- 1. THE SMART LOGO --- */}
             {/* If logged in, go to browse-pets. If logged out, go to home! */}

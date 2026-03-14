@@ -101,7 +101,7 @@ export default function PetChat() {
     if (isLoading) return <div className="min-h-screen flex justify-center items-center"><FaSpinner className="animate-spin size-12 text-star" /></div>;
 
     return (
-        <div className="max-w-3xl mx-auto min-h-[calc(100vh-80px)] flex flex-col bg-white shadow-sm border-x border-gray-200 animate-[fade-in-up_0.3s_ease-out]">
+        <div className="w-[80vw] mx-auto min-h-[calc(100vh-65px)] flex flex-col bg-white shadow-sm border-x border-gray-200 animate-[fade-in-up_0.3s_ease-out]">
             
             {/* --- CHAT HEADER --- */}
             <div className="bg-white border-b border-gray-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-0 z-10 shadow-sm">
