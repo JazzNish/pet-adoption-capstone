@@ -9,7 +9,7 @@ export default function AdminVerifications() {
     useEffect(() => {
         const fetchPending = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/users/admin/pending', {
+                const response = await fetch('https://pet-adoption-capstone.onrender.com/api/users/admin/pending', {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 if (response.ok) {
@@ -30,7 +30,7 @@ export default function AdminVerifications() {
         if (!window.confirm(`Are you sure you want to ${action} this ID?`)) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/users/admin/${userId}/verify`, {
+            const response = await fetch(`https://pet-adoption-capstone.onrender.com/api/users/admin/${userId}/verify`, {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
