@@ -1,96 +1,61 @@
 import Application from '../models/Application.js';
-import Pet from '../models/Pet.js';
 
-// --- 1. SUBMIT A NEW APPLICATION ---
+// 1. Submit a new application
 export const submitApplication = async (req, res) => {
     try {
-        const { petId, rehomerId, salary, livingSituation, experience, reason, otherPets, contactNumber } = req.body;
-        
-        const adopterId = req.user.id;
+        const adopterId = req.user.id; // From authMiddleware
+        const applicationData = { ...req.body, adopterId };
 
-        // Check if they already applied
-        const existingApp = await Application.findOne({ adopter: adopterId, pet: petId });
+        // Prevent duplicate applications for the same pet
+        const existingApp = await Application.findOne({ petId: req.body.petId, adopterId });
         if (existingApp) {
-            return res.status(400).json({ message: "You have already applied for this pet!" });
+            return res.status(400).json({ message: "You have already applied for this pet." });
         }
 
-        const newApplication = await Application.create({
-            adopter: adopterId,
-            pet: petId,
-            rehomer: rehomerId,
-            salary,
-            livingSituation,
-            experience,
-            reason,         
-            otherPets,      
-            contactNumber   
-        });
-
-        res.status(201).json(newApplication);
+        const newApplication = await Application.create(applicationData);
+        res.status(201).json({ message: "Application submitted successfully", application: newApplication });
     } catch (error) {
         console.error("Error submitting application:", error);
-        res.status(500).json({ message: "Failed to submit application" });
+        res.status(500).json({ message: "Server error while submitting application." });
     }
 };
 
-// --- 2. GET ADOPTER'S APPLICATIONS (For "My Applications" page) ---
+// 2. Get applications for an Adopter (My Applications)
 export const getMyApplications = async (req, res) => {
     try {
-        const applications = await Application.find({ adopter: req.user.id })
-            .populate('pet')
+        const applications = await Application.find({ adopterId: req.user.id })
+            .populate('petId', 'name imageUrls breed location')
             .sort({ createdAt: -1 });
         res.status(200).json(applications);
     } catch (error) {
-        console.error("Error fetching my applications:", error);
-        res.status(500).json({ message: "Failed to fetch applications" });
+        res.status(500).json({ message: "Failed to fetch your applications." });
     }
 };
 
-// --- 3. GET REHOMER'S ADOPTION REQUESTS (For "Adoption Requests" page) ---
+// 3. Get applications for a Rehomer (People applying for my pets)
 export const getRehomerApplications = async (req, res) => {
     try {
-        const applications = await Application.find({ rehomer: req.user.id })
-            .populate('pet')
-            .populate('adopter', 'firstName lastName email') // Pulls the adopter's basic info
+        const applications = await Application.find({ rehomerId: req.user.id })
+            .populate('petId', 'name imageUrls breed')
+            .populate('adopterId', 'name email profilePicture')
             .sort({ createdAt: -1 });
         res.status(200).json(applications);
     } catch (error) {
-        console.error("Error fetching rehomer requests:", error);
-        res.status(500).json({ message: "Failed to fetch adoption requests" });
+        res.status(500).json({ message: "Failed to fetch applications for your pets." });
     }
 };
 
-// --- 4. UPDATE APPLICATION STATUS (The Smart Waitlist Version!) ---
+// 4. Update Application Status (Approve/Reject)
 export const updateApplicationStatus = async (req, res) => {
     try {
-        const { status } = req.body; // 'Approved' or 'Rejected'
-        
+        const { status } = req.body;
         const application = await Application.findByIdAndUpdate(
             req.params.id, 
             { status }, 
-            { new: true } 
-        ).populate('pet'); 
-
-        if (!application) {
-            return res.status(404).json({ message: "Application not found" });
-        }
-
-        // If approved, update the Pet to 'Pending' to hide it from Browse Pets
-        if (status === 'Approved') {
-            await Pet.findByIdAndUpdate(application.pet._id, { status: 'Pending' });
-        }
-
-        // If they change their mind and Reject an already approved app, make the pet Available again
-        if (status === 'Rejected') {
-            const otherApproved = await Application.findOne({ pet: application.pet._id, status: 'Approved' });
-            if (!otherApproved) {
-                await Pet.findByIdAndUpdate(application.pet._id, { status: 'Available' });
-            }
-        }
-
-        res.status(200).json(application);
+            { new: true }
+        );
+        res.status(200).json({ message: `Application ${status}`, application });
     } catch (error) {
-        console.error("Error updating status:", error);
-        res.status(500).json({ message: "Failed to update status" });
+        res.status(500).json({ message: "Failed to update application status." });
     }
 };

@@ -1,20 +1,15 @@
 import express from 'express';
-import { 
-    submitApplication, 
-    getMyApplications, 
-    getRehomerApplications, 
-    updateApplicationStatus 
-} from '../controllers/applicationController.js';
+import { submitApplication, getMyApplications, getRehomerApplications, updateApplicationStatus } from '../controllers/applicationController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Adopter Routes
-router.post('/submit', authMiddleware, submitApplication);
-router.get('/my-applications', authMiddleware, getMyApplications);
+// All routes require the user to be logged in
+router.use(authMiddleware);
 
-// 🚨 NEW: Rehomer Routes
-router.get('/received', authMiddleware, getRehomerApplications);
-router.put('/:id/status', authMiddleware, updateApplicationStatus);
+router.post('/', submitApplication);
+router.get('/adopter', getMyApplications);
+router.get('/rehomer', getRehomerApplications);
+router.put('/:id/status', updateApplicationStatus);
 
 export default router;
