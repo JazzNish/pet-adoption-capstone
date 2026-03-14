@@ -22,7 +22,17 @@ export default function AdminVerifications() {
                 setIsLoading(false);
             }
         };
+
+        // 1. Fetch immediately when the page loads
         fetchPending();
+
+        // 👇 2. THE MAGIC: Silently fetch again every 3 seconds!
+        const intervalId = setInterval(() => {
+            fetchPending();
+        }, 3000); 
+
+        // 3. Clean up the timer when we leave the page so it doesn't run forever
+        return () => clearInterval(intervalId);
     }, []);
 
     const handleReview = async (userId, newStatus) => {

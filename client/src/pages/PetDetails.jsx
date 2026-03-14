@@ -15,24 +15,31 @@ export default function PetDetails() {
     const [isLoading, setIsLoading] = useState(true);
     
     // Grab user to determine which button to show
-    const currentUser = JSON.parse(localStorage.getItem('furever_user'));
+    const [currentUser, setCurrentUser] = useState(JSON.parse(localStorage.getItem('furever_user')));
 
+    // 👇 ADD THIS NEW EFFECT: Silently grab their freshest verification status!
     useEffect(() => {
-        const fetchPetDetails = async () => {
+        const fetchFreshUser = async () => {
+            if (!currentUser || !currentUser.id) return;
             try {
-                const res = await fetch(`https://pet-adoption-capstone.onrender.com/api/pets/${id}`);
+                const res = await fetch(`https://pet-adoption-capstone.onrender.com/api/users/${currentUser.id}/public`);
                 if (res.ok) {
-                    setPet(await res.json());
+                    const freshData = await res.json();
+                    
+                    // If the database says they are verified now, update the page instantly!
+                    if (freshData.idVerificationStatus !== currentUser.idVerificationStatus) {
+                        const updatedUser = { ...currentUser, idVerificationStatus: freshData.idVerificationStatus };
+                        setCurrentUser(updatedUser); // Updates the button on the screen
+                        localStorage.setItem('furever_user', JSON.stringify(updatedUser)); // Updates browser memory
+                    }
                 }
             } catch (error) {
-                console.error("Failed to fetch pet details:", error);
-            } finally {
-                setIsLoading(false);
+                console.error("Failed to check verification status", error);
             }
         };
 
-        fetchPetDetails();
-    }, [id]);
+        fetchFreshUser();
+    }, [currentUser?.id]);
 
     if (isLoading) return <div className="min-h-screen flex justify-center items-center"><FaSpinner className="animate-spin size-12 text-[#1c1e21]" /></div>;
     

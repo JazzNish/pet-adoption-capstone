@@ -28,7 +28,7 @@ export default function Messages() {
         // 2. Silently fetch fresh messages every 3 seconds!
         const intervalId = setInterval(() => {
             fetchInbox();
-        }, 1000);
+        }, 3000);
 
         // 3. Cleanup: Stop asking the server when the user leaves the inbox
         return () => clearInterval(intervalId);
