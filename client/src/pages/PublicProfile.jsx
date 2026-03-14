@@ -14,26 +14,35 @@ export default function PublicProfile() {
 
     // --- FETCH DATA ---
     useEffect(() => {
+        // Stop immediately if there's no ID!
+        if (!id || id === 'undefined') {
+            setIsLoading(false);
+            return; 
+        }
+
         const fetchProfileData = async () => {
             try {
-                // 1. Fetch the user's public info
+                // 1. Fetch User Info
                 const userRes = await fetch(`https://pet-adoption-capstone.onrender.com/api/users/${id}/public`);
                 if (userRes.ok) {
                     const userData = await userRes.json();
-                    setProfileUser(userData);
+                    // Double check we actually got an object back, not just empty text
+                    if (userData && typeof userData === 'object') {
+                        setProfileUser(userData);
+                    }
                 }
 
-                // 2. Fetch all pets posted by this user
+                // 2. Fetch Pets
                 const petsRes = await fetch(`https://pet-adoption-capstone.onrender.com/api/pets/my-pets/${id}`);
                 if (petsRes.ok) {
-                    // 🛡️ SAFETY CHECK: Make sure the server actually sent JSON, not an HTML error!
-                    const contentType = petsRes.headers.get("content-type");
-                    if (contentType && contentType.includes("application/json")) {
-                        const petsData = await petsRes.json();
-                        // 🛡️ SAFETY CHECK: Ensure it's an array before saving it!
-                        if (Array.isArray(petsData)) {
-                            setUserPets(petsData);
-                        }
+                    const petsData = await petsRes.json();
+                    // FORCE it to be an array, no matter what!
+                    if (Array.isArray(petsData)) {
+                        setUserPets(petsData);
+                    } else if (petsData && Array.isArray(petsData.pets)) {
+                        setUserPets(petsData.pets); // Just in case it's wrapped!
+                    } else {
+                        setUserPets([]); // Fallback
                     }
                 }
             } catch (error) {
@@ -46,27 +55,35 @@ export default function PublicProfile() {
         fetchProfileData();
     }, [id]);
 
-    // --- FILTER PETS FOR TABS (Safely) ---
-    const availablePets = userPets.filter(pet => pet.status === 'Available');
-    const rehomedPets = userPets.filter(pet => pet.status === 'Adopted'); 
+    // --- FILTER PETS FOR TABS (Safely!) ---
+    // We use a fallback `[]` just in case userPets is somehow undefined.
+    const safeUserPets = Array.isArray(userPets) ? userPets : [];
+    const availablePets = safeUserPets.filter(pet => pet?.status === 'Available');
+    const rehomedPets = safeUserPets.filter(pet => pet?.status === 'Adopted' || pet?.status === 'Pending'); // Include pending in history
 
+    // --- RENDER: Loading ---
     if (isLoading) {
         return (
-            <div className="min-h-screen flex justify-center items-center bg-cover">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-star"></div>
+            <div className="min-h-screen flex justify-center items-center bg-[#fdfdfd]">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1c1e21]"></div>
             </div>
         );
     }
 
+    // --- RENDER: Not Found ---
     if (!profileUser) {
         return (
-            <div className="min-h-screen flex flex-col justify-center items-center bg-cover gap-4">
-                <h1 className="text-3xl font-bold text-title">Profile not found!</h1>
-                <Link to="/browse-pets" className="text-star font-bold hover:underline">Go back to Browse Pets</Link>
+            <div className="min-h-screen flex flex-col justify-center items-center bg-[#fdfdfd] gap-4">
+                <h1 className="text-3xl font-bold text-[#1c1e21]">Profile not found!</h1>
+                <p className="text-gray-500">The user you are looking for does not exist.</p>
+                <Link to="/browse-pets" className="bg-[#1c1e21] text-white px-6 py-2 rounded-xl font-bold hover:bg-black transition-colors">
+                    Go back to Browse
+                </Link>
             </div>
         );
     }
 
+    // --- RENDER: Main Profile ---
     return (
         <div className="min-h-screen bg-[#fdfdfd] pb-12 animate-[fade-in-up_0.4s_ease-out]">
             
@@ -89,7 +106,7 @@ export default function PublicProfile() {
                         <div className="size-32 sm:size-40 rounded-full border-4 border-white shadow-md overflow-hidden bg-white">
                             <img 
                                 src={profileUser.profilePicture || "/src/assets/noUser.png"} 
-                                alt={profileUser.name} 
+                                alt={profileUser.name || "User"} 
                                 className="w-full h-full object-cover"
                                 referrerPolicy="no-referrer"
                             />
@@ -105,7 +122,6 @@ export default function PublicProfile() {
                                 )}
                             </h1>
                             <p className="text-gray-500 font-medium mt-1 flex items-center gap-2">
-                                {/* 🛡️ SAFETY CHECK: Prevent Date Crash! */}
                                 <FaCalendarAlt className="text-gray-400" /> Joined {profileUser.createdAt ? new Date(profileUser.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : "Recently"}
                             </p>
                         </div>
@@ -157,22 +173,37 @@ export default function PublicProfile() {
                     {activeTab === 'available' ? (
                         availablePets.length > 0 ? (
                             availablePets.map(pet => (
-                                <PetCard key={pet._id} id={pet._id} image={pet.imageUrls?.[0] || pet.imageUrl} name={pet.name} breed={pet.breed} location={pet.location} />
+                                <PetCard 
+                                    key={pet?._id || Math.random()} 
+                                    id={pet?._id} 
+                                    image={pet?.imageUrls?.[0] || pet?.imageUrl} 
+                                    name={pet?.name} 
+                                    breed={pet?.breed} 
+                                    location={pet?.location}
+                                    status={pet?.status}
+                                />
                             ))
                         ) : (
                             <div className="col-span-full py-12 text-center text-gray-500 font-medium bg-white rounded-2xl border border-dashed border-gray-300">
-                                {profileUser.name} currently has no pets available for adoption.
+                                {profileUser.name || "This user"} currently has no pets available for adoption.
                             </div>
                         )
                     ) : (
                         rehomedPets.length > 0 ? (
                             rehomedPets.map(pet => (
-                                <div key={pet._id} className="relative group">
+                                <div key={pet?._id || Math.random()} className="relative group">
                                     <div className="absolute top-4 left-4 z-10 bg-green-500 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-full shadow-md">
                                         Adopted
                                     </div>
                                     <div className="opacity-80 grayscale-[20%] transition-all group-hover:grayscale-0 group-hover:opacity-100">
-                                        <PetCard id={pet._id} image={pet.imageUrls?.[0] || pet.imageUrl} name={pet.name} breed={pet.breed} location={pet.location} />
+                                        <PetCard 
+                                            id={pet?._id} 
+                                            image={pet?.imageUrls?.[0] || pet?.imageUrl} 
+                                            name={pet?.name} 
+                                            breed={pet?.breed} 
+                                            location={pet?.location} 
+                                            status={pet?.status}
+                                        />
                                     </div>
                                 </div>
                             ))
