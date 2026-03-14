@@ -7,19 +7,18 @@ export default function AdoptionRequest() {
     const [isLoading, setIsLoading] = useState(true);
     const token = localStorage.getItem('token');
 
-    // --- FETCH REQUESTS & AUTO-REFRESH ---
     useEffect(() => {
         const fetchRequests = async () => {
             try {
-                const res = await fetch('https://pet-adoption-capstone.onrender.com/api/applications/received', {
+                const res = await fetch('https://pet-adoption-capstone.onrender.com/api/applications/rehomer', { // 👈 FIXED ROUTE HERE!
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
                     const data = await res.json();
                     
-                    // Safely check if data is an array, then filter out any ghost requests
                     if (Array.isArray(data)) {
-                        setRequests(data.filter(req => req.pet != null));
+                        // Again, let's remove the strict filter for a second so we can see the data
+                        setRequests(data); 
                     }
                 }
             } catch (error) {
@@ -27,17 +26,9 @@ export default function AdoptionRequest() {
             }
         };
 
-        // 1. Fetch immediately on load, then turn off the loading spinner
         fetchRequests().then(() => setIsLoading(false));
-
-        // 2. Silently fetch fresh data every 5 seconds in the background
-        const intervalId = setInterval(() => {
-            fetchRequests();
-        }, 5000);
-
-        // 3. Cleanup: Stop asking the server when the user leaves the page
+        const intervalId = setInterval(fetchRequests, 5000);
         return () => clearInterval(intervalId);
-
     }, [token]);
 
     // Function to handle clicking Approve or Reject

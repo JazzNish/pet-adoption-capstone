@@ -11,39 +11,33 @@ export default function MyApplications() {
 
     // --- FETCH REAL DATA FROM BACKEND ---
     // --- FETCH REAL DATA & AUTO-REFRESH ---
-    useEffect(() => {
+   useEffect(() => {
         const fetchApplications = async () => {
             try {
-                const res = await fetch('https://pet-adoption-capstone.onrender.com/api/applications/my-applications', {
+                const res = await fetch('https://pet-adoption-capstone.onrender.com/api/applications/adopter', { // 👈 FIXED ROUTE HERE!
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
                     const data = await res.json();
                     
-                    // 🚨 DEBUG LOG: Let's see exactly what the database is sending!
-                    console.log("RAW DATABASE APPLICATIONS:", data);
+                    // Let's print EXACTLY what we got!
+                    console.log("RAW APPLICATIONS:", data);
                     
-                    // Safely filter only if data is actually an array
+                    // For now, let's just set ALL data directly to the screen so we can see it
                     if (Array.isArray(data)) {
-                        setApplications(data.filter(app => app.pet != null));
+                        setApplications(data); 
                     }
+                } else {
+                    console.error("Server returned:", await res.text());
                 }
             } catch (error) {
                 console.error("Failed to fetch applications:", error);
             }
         };
 
-        // 1. Fetch immediately on load, then turn off the loading spinner
         fetchApplications().then(() => setIsLoading(false));
-
-        // 2. Silently fetch fresh data every 5 seconds in the background
-        const intervalId = setInterval(() => {
-            fetchApplications();
-        }, 5000);
-
-        // 3. Cleanup: Stop asking the server when the user leaves the page
+        const intervalId = setInterval(fetchApplications, 5000);
         return () => clearInterval(intervalId);
-        
     }, [token]);
 
     // Helper function to color the status badges perfectly
