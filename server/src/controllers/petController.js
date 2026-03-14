@@ -1,6 +1,7 @@
 import Pet from '../models/Pet.js';
 import Application from '../models/Application.js';
 import Message from '../models/Message.js';
+import mongoose from 'mongoose';
 
 /* CREATE PET (REHOMER ONLY) */
 // --- ADD A NEW PET ---
@@ -46,7 +47,13 @@ export const createPet = async (req, res) => {
 export const getRehomerPets = async (req, res) => {
     try {
         const { ownerId } = req.params;
-        const pets = await Pet.find({ owner: ownerId }).sort({ createdAt: -1 }); // Newest first
+
+        // 👇 THE BOUNCER
+        if (!ownerId || ownerId === 'undefined' || !mongoose.Types.ObjectId.isValid(ownerId)) {
+            return res.status(400).json({ message: "Invalid Owner ID sent to server." });
+        }
+
+        const pets = await Pet.find({ owner: ownerId }).sort({ createdAt: -1 });
         res.status(200).json(pets);
     } catch (error) {
         console.error("Error fetching pets:", error);
@@ -64,18 +71,15 @@ export const getAllPets = async (req, res) => {
     }
 };
 
-/* GET SINGLE PET BY ID */
 export const getPetById = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // 👇 THE BOUNCER: If the frontend sends 'undefined' or a fake ID, kick it out safely!
+        // 👇 THE BOUNCER
         if (!id || id === 'undefined' || !mongoose.Types.ObjectId.isValid(id)) {
-            console.log("Blocked invalid ID from reaching database:", id);
-            return res.status(400).json({ message: "Invalid Pet ID format sent to server." });
+            return res.status(400).json({ message: "Invalid Pet ID sent to server." });
         }
 
-        console.log("Looking for pet with ID:", id); 
         const pet = await Pet.findById(id).populate('owner', 'name profilePicture');
         
         if (!pet) {
