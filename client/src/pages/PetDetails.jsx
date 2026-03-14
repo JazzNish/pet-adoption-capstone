@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
-    FaArrowLeft, FaMapMarkerAlt, FaVenusMars, 
+    FaArrowLeft, FaMapMarkerAlt, FaVenusMars, FaExpand, FaTimes,
     FaBirthdayCake, FaPaw, FaStethoscope, FaInfoCircle, FaSpinner , FaWeightHanging,
 } from 'react-icons/fa';
 import { LuClipboardList } from "react-icons/lu";
@@ -13,6 +13,7 @@ export default function PetDetails() {
     const [pet, setPet] = useState(null);
     const [activeImageIndex, setActiveImageIndex] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     
     // Grab user to determine which button to show
     const [currentUser, setCurrentUser] = useState(JSON.parse(localStorage.getItem('furever_user')));
@@ -63,19 +64,26 @@ export default function PetDetails() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                     
                     {/* LEFT COLUMN: Photos */}
-                    {/* LEFT COLUMN: Photos */}
-                    <div className="space-y-4">
-                        {/* Main Big Image */}
-                        <div className="aspect-square rounded-3xl overflow-hidden shadow-sm border border-gray-100 bg-gray-50 relative">
-                            {/* Fallback to index 0 if something goes wrong, or a placeholder */}
+                    <div className="space-y-4 lg:sticky lg:top-24 h-fit">
+                        {/* Main Big Image (Now Clickable!) */}
+                        <div 
+                            className="aspect-square rounded-3xl overflow-hidden shadow-sm border border-gray-100 bg-gray-50 relative group cursor-pointer"
+                            onClick={() => setIsModalOpen(true)}
+                        >
                             <img 
                                 src={pet.imageUrls?.[activeImageIndex] || "https://via.placeholder.com/600"} 
                                 alt={pet.name} 
-                                className="w-full h-full object-cover animate-[fade-in_0.3s_ease-out]"
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                             />
+                            {/* Hover Overlay */}
+                            <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span className="text-white font-bold tracking-wider flex items-center gap-2 bg-black/50 px-4 py-2 rounded-full backdrop-blur-sm">
+                                    <FaExpand /> CLICK TO EXPAND
+                                </span>
+                            </div>
                         </div>
 
-                        {/* Thumbnails Row (Only show if there's more than 1 image) */}
+                        {/* Thumbnails Row */}
                         {pet.imageUrls?.length > 1 && (
                             <div className="flex gap-3 overflow-x-auto py-1">
                                 {pet.imageUrls.map((url, index) => (
@@ -102,7 +110,7 @@ export default function PetDetails() {
                             </p>
                         </div>
 
-                        {/* Quick Info Grid (Breed, Age, Gender) */}
+                        {/* Quick Info Grid */}
                         <div className="grid grid-cols-4 gap-4 mb-8">
                             <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
                                 <FaPaw className="size-6 text-blue-500 mb-2" />
@@ -137,7 +145,7 @@ export default function PetDetails() {
                         </div>
 
                         {/* Health Information */}
-                        <div className="mb-10">
+                        <div className="mb-8">
                             <h2 className="text-xl font-black text-[#1c1e21] flex items-center gap-2 mb-3">
                                 <FaStethoscope className="text-gray-400" /> Health & Medical
                             </h2>
@@ -146,15 +154,37 @@ export default function PetDetails() {
                             </p>
                         </div>
 
+                        {/* 👇 THE CLICKABLE REHOMER PROFILE CARD 👇 */}
+                        <Link 
+                            to={`/profile/${pet.owner?._id}`} 
+                            className="mb-8 p-5 bg-gray-50 hover:bg-gray-100 transition-all rounded-2xl border border-gray-200 flex items-center justify-between group block shadow-sm hover:shadow-md cursor-pointer"
+                        >
+                            <div className="flex items-center gap-4">
+                                <img 
+                                    src={pet.owner?.profilePicture || "/src/assets/noUser.png"} 
+                                    alt="Rehomer" 
+                                    className="size-14 rounded-full object-cover border-2 border-white shadow-sm"
+                                    referrerPolicy="no-referrer"
+                                />
+                                <div>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-0.5">Listed By</p>
+                                    <h3 className="font-bold text-[#1c1e21] text-lg group-hover:text-blue-600 transition-colors">
+                                        {pet.owner?.name || "Anonymous Rehomer"}
+                                    </h3>
+                                </div>
+                            </div>
+                            <div className="text-sm font-bold text-gray-400 group-hover:text-blue-600 transition-colors">
+                                View Profile &rarr;
+                            </div>
+                        </Link>
+
                         {/* --- DYNAMIC CALL TO ACTION BUTTON --- */}
                         <div className="mt-auto pt-6 border-t border-gray-100">
                             {pet.status !== 'Available' ? (
-                                // 🚨 STATE 0: Pet is no longer available!
                                 <div className="w-full bg-gray-100 text-gray-500 font-bold py-4 rounded-xl flex items-center justify-center text-center border border-gray-200">
                                     {pet.status === 'Pending' ? 'Adoption Pending' : 'Adopted'}
                                 </div>
                             ) : !currentUser ? (
-                                // STATE 1: Not logged in
                                 <Link 
                                     to="/log-in"
                                     className="w-full bg-[#1c1e21] hover:bg-black text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm"
@@ -162,12 +192,10 @@ export default function PetDetails() {
                                     Log in to Adopt {pet.name}
                                 </Link>
                             ) : currentUser.role === 'rehomer' ? (
-                                // STATE 2: Logged in as a Rehomer
                                 <div className="w-full bg-gray-100 text-gray-500 font-bold py-4 rounded-xl flex items-center justify-center text-center border border-gray-200">
                                     Adopter accounts only.
                                 </div>
                             ) : currentUser.idVerificationStatus !== 'verified' ? (
-                                // STATE 3: Logged in as Adopter, but NOT VERIFIED
                                 <Link 
                                     to="/profile-settings" 
                                     className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm"
@@ -175,7 +203,6 @@ export default function PetDetails() {
                                     Verify ID to Adopt
                                 </Link>
                             ) : (
-                                // STATE 4: Logged in as Adopter AND VERIFIED! (Show Application Button)
                                 <Link 
                                     to={`/apply/${pet?._id}`}
                                     className="w-full bg-[#1c1e21] hover:bg-black text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm"
@@ -188,6 +215,27 @@ export default function PetDetails() {
                     </div>
                 </div>
             </div>
+
+            {/* 👇 FULL SCREEN IMAGE MODAL 👇 */}
+            {isModalOpen && (
+                <div 
+                    className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 backdrop-blur-sm cursor-zoom-out animate-[fade-in_0.2s_ease-out]"
+                    onClick={() => setIsModalOpen(false)}
+                >
+                    <button 
+                        className="absolute top-6 right-6 text-white bg-black/50 hover:bg-black p-3 rounded-full transition-colors"
+                        onClick={() => setIsModalOpen(false)}
+                    >
+                        <FaTimes className="size-6" />
+                    </button>
+                    <img 
+                        src={pet.imageUrls?.[activeImageIndex] || "https://via.placeholder.com/600"} 
+                        alt="Zoomed Pet" 
+                        className="max-w-full max-h-[90vh] object-contain rounded-xl shadow-2xl"
+                    />
+                </div>
+            )}
         </div>
     );
+
 }
