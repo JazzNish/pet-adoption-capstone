@@ -8,8 +8,8 @@ export default function AdminPets() {
     useEffect(() => {
         const fetchPets = async () => {
             try {
-                // Testing locally first!
-                const response = await fetch('http://localhost:5000/api/pets/admin/all', {
+                // 👇 Updated to your live Render link
+                const response = await fetch('https://pet-adoption-capstone.onrender.com/api/pets/admin/all', {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 if (response.ok) {
@@ -22,7 +22,15 @@ export default function AdminPets() {
                 setIsLoading(false);
             }
         };
+
+        // 1. Fetch instantly on load
         fetchPets();
+
+        // 2. THE MAGIC: Silently fetch again every 5 seconds
+        const intervalId = setInterval(fetchPets, 5000);
+
+        // 3. Clean up timer on exit
+        return () => clearInterval(intervalId);
     }, []);
 
     const handleDeletePet = async (petId) => {

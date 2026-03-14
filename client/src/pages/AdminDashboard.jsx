@@ -13,8 +13,8 @@ export default function AdminDashboard() {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                // Change to your live Render link when ready!
-                const response = await fetch('http://localhost:5000/api/admin/stats', {
+                // 👇 Updated to your live Render link
+                const response = await fetch('https://pet-adoption-capstone.onrender.com/api/admin/stats', {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 
@@ -29,9 +29,16 @@ export default function AdminDashboard() {
             }
         };
 
+        // 1. Fetch instantly on load
         fetchStats();
-    }, []);
 
+        // 2. THE MAGIC: Silently fetch again every 5 seconds
+        const intervalId = setInterval(fetchStats, 5000);
+
+        // 3. Clean up timer on exit
+        return () => clearInterval(intervalId);
+    }, []);
+    
     // A reusable component for our stat cards
     const StatCard = ({ title, count, icon, color }) => (
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">

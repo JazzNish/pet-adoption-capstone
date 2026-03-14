@@ -35,34 +35,46 @@ function BrowsePets() {
 
     // --- FETCH PETS ---
     // --- FETCH PETS AND SAVED PETS ---
+    // --- FETCH PETS AND SAVED PETS (WITH AUTO-REFRESH) ---
     useEffect(() => {
-        fetch("https://pet-adoption-capstone.onrender.com/api/pets")
-            .then((res) => res.json())
-            .then((data) => {
-                setPets(data);
-                setIsLoading(false);
-            })
-            .catch((err) => {
-                console.log(err);
-                setIsLoading(false);
-            });
-
-        // Fetch saved pets
-        const fetchSavedPets = async () => {
-            if (!currentUser) return;
+        const fetchAllData = async () => {
             try {
-                const res = await fetch('https://pet-adoption-capstone.onrender.com/api/users/saved-pets', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    const savedPets = await res.json();
-                    setSavedPetIds(savedPets.map(pet => pet._id)); 
+                // 1. Silently fetch the main pet list
+                const petRes = await fetch("https://pet-adoption-capstone.onrender.com/api/pets");
+                if (petRes.ok) {
+                    const petData = await petRes.json();
+                    setPets(petData);
+                }
+
+                // 2. Silently fetch their saved pets (if they are logged in)
+                if (currentUser) {
+                    const savedRes = await fetch('https://pet-adoption-capstone.onrender.com/api/users/saved-pets', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (savedRes.ok) {
+                        const savedPets = await savedRes.json();
+                        setSavedPetIds(savedPets.map(pet => pet._id)); 
+                    }
                 }
             } catch (error) {
-                console.error("Failed to load saved pets", error);
+                console.error("Failed to fetch data silently", error);
+            } finally {
+                // This turns off the big spinner after the first load. 
+                // It stays false, so the 5-second refreshes stay completely invisible!
+                setIsLoading(false); 
             }
         };
-        fetchSavedPets();
+
+        // 1. Fetch instantly when the page loads
+        fetchAllData();
+
+        // 2. THE MAGIC: Silently fetch again every 5 seconds
+        const intervalId = setInterval(fetchAllData, 5000);
+
+        // 3. Clean up the timer when they leave the browse page
+        return () => clearInterval(intervalId);
+        
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleSavePet = async (petId, e) => {

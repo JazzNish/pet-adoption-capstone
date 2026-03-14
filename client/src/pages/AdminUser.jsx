@@ -6,11 +6,12 @@ export default function AdminUsers() {
     const [isLoading, setIsLoading] = useState(true);
 
     // Fetch all users when the page loads
+    // Fetch all users when the page loads (WITH AUTO-REFRESH)
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                // We will build this backend route next!
-                const response = await fetch('http://localhost:5000/api/users', {
+                // 👇 Updated to your live Render link
+                const response = await fetch('https://pet-adoption-capstone.onrender.com/api/users', {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 if (response.ok) {
@@ -23,7 +24,15 @@ export default function AdminUsers() {
                 setIsLoading(false);
             }
         };
+
+        // 1. Fetch instantly on load
         fetchUsers();
+
+        // 2. THE MAGIC: Silently fetch again every 5 seconds
+        const intervalId = setInterval(fetchUsers, 5000);
+
+        // 3. Clean up timer on exit
+        return () => clearInterval(intervalId);
     }, []);
 
     const handleBanUser = async (userId, currentStatus) => {
