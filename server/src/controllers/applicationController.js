@@ -1,4 +1,5 @@
 import Application from '../models/Application.js';
+import Pet from '../models/Pet.js';
 
 // 1. Submit a new application
 export const submitApplication = async (req, res) => {
