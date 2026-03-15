@@ -1,5 +1,5 @@
 import express from 'express';
-import { submitApplication, getMyApplications, getRehomerApplications, updateApplicationStatus } from '../controllers/applicationController.js';
+import { submitApplication, getMyApplications, getRehomerApplications, updateApplicationStatus, deleteApplication } from '../controllers/applicationController.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -11,5 +11,6 @@ router.post('/', submitApplication);
 router.get('/adopter', getMyApplications);
 router.get('/rehomer', getRehomerApplications);
 router.put('/:id/status', updateApplicationStatus);
+router.delete("/:id", authMiddleware, deleteApplication);
 
 export default router;

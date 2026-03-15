@@ -59,3 +59,22 @@ export const updateApplicationStatus = async (req, res) => {
         res.status(500).json({ message: "Failed to update application status." });
     }
 };
+
+// --- DELETE AN APPLICATION ---
+export const deleteApplication = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Find the application by its ID and delete it from MongoDB
+        const deletedApp = await Application.findByIdAndDelete(id);
+
+        if (!deletedApp) {
+            return res.status(404).json({ message: "Application not found." });
+        }
+
+        res.status(200).json({ message: "Application successfully deleted." });
+    } catch (error) {
+        console.error("Error deleting application:", error);
+        res.status(500).json({ message: "Server error while deleting application." });
+    }
+};
