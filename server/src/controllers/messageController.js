@@ -56,7 +56,7 @@ export const getInbox = async (req, res) => {
             $or: [{ sender: myId }, { receiver: myId }]
         })
         .sort({ createdAt: -1 })
-        .populate('pet', 'name imageUrl')
+        .populate('pet', 'name imageUrl imageUrls')
         .populate('sender', 'name profilePicture')
         .populate('receiver', 'name profilePicture');
 

@@ -10,14 +10,13 @@ export default function AdoptionRequest() {
     useEffect(() => {
         const fetchRequests = async () => {
             try {
-                const res = await fetch('https://pet-adoption-capstone.onrender.com/api/applications/rehomer', { // 👈 FIXED ROUTE HERE!
+                const res = await fetch('https://pet-adoption-capstone.onrender.com/api/applications/rehomer', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
                     const data = await res.json();
                     
                     if (Array.isArray(data)) {
-                        // Again, let's remove the strict filter for a second so we can see the data
                         setRequests(data); 
                     }
                 }
@@ -31,9 +30,13 @@ export default function AdoptionRequest() {
         return () => clearInterval(intervalId);
     }, [token]);
 
-    // Function to handle clicking Approve or Reject
+    // --- FUNCTION TO APPROVE/REJECT & AUTO-MESSAGE ---
     const handleUpdateStatus = async (id, newStatus) => {
+        // 1. Find the specific application
+        const currentRequest = requests.find(req => req._id === id);
+
         try {
+            // 2. Update the Application Status
             const res = await fetch(`https://pet-adoption-capstone.onrender.com/api/applications/${id}/status`, {
                 method: 'PUT',
                 headers: { 
@@ -44,10 +47,51 @@ export default function AdoptionRequest() {
             });
 
             if (res.ok) {
-                // Instantly update the screen without refreshing the page!
+                // Instantly update the screen
                 setRequests(requests.map(req => 
                     req._id === id ? { ...req, status: newStatus } : req
                 ));
+
+                // 🚨 3. THE MAGIC: AUTOMATED MESSAGE 🚨
+                if (newStatus === 'Approved' && currentRequest) {
+                    try {
+                        // SAFELY EXTRACT IDs: Handle both populated objects and flat strings!
+                        const safeReceiverId = currentRequest.adopterId?._id || currentRequest.adopterId?.id || currentRequest.adopterId;
+                        const safePetId = currentRequest.petId?._id || currentRequest.petId?.id || currentRequest.petId;
+                        
+                        // 👇 THE FIX: Extremely safe fallback name and pet name!
+                        const petName = currentRequest.petId?.name || "this pet";
+
+                        if (!safeReceiverId || !safePetId) {
+                            console.error("Missing IDs, cannot send auto-message.", { safeReceiverId, safePetId });
+                            return; 
+                        }
+
+                        const msgRes = await fetch('https://pet-adoption-capstone.onrender.com/api/messages/send', { 
+                            method: 'POST',
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}` 
+                            },
+                            body: JSON.stringify({
+                                receiverId: safeReceiverId,
+                                petId: safePetId,
+                                // 👇 THE FIX: Change "content" back to "text"
+                                text: `Great news! I have approved your application to adopt ${petName}. Let's chat about the next steps!`
+                            })
+                        });
+
+                        if (!msgRes.ok) {
+                            const errorText = await msgRes.text();
+                            console.error("Backend rejected the message:", errorText);
+                        } else {
+                            console.log("Automated message sent successfully!");
+                        }
+                        
+                    } catch (msgError) {
+                        console.error("Failed to send automated message:", msgError);
+                    }
+                }
             }
         } catch (error) {
             console.error("Failed to update status:", error);
@@ -82,7 +126,6 @@ export default function AdoptionRequest() {
                                 {/* Top Section: Adopter & Pet Info */}
                                 <div className="flex flex-col sm:flex-row justify-between gap-6 border-b border-gray-100 pb-6 mb-6">
                                     <div className="flex items-center gap-4">
-                                        {/* 👇 Updated to adopterId! */}
                                         <img src={req.adopterId?.profilePicture || "/src/assets/noUser.png"} alt="Adopter" className="size-14 rounded-full object-cover border border-gray-200" referrerPolicy="no-referrer" />
                                         <div>
                                             <h3 className="font-bold text-[#1c1e21] text-lg">{req.adopterId?.name || "Unknown Adopter"}</h3>
@@ -92,16 +135,14 @@ export default function AdoptionRequest() {
                                     <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-100">
                                         <div className="text-right">
                                             <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Applying for</p>
-                                            {/* 👇 Updated to petId! */}
                                             <p className="font-bold text-[#1c1e21]">{req.petId?.name}</p>
                                         </div>
-                                        {/* 👇 Updated to petId and imageUrls array! */}
                                         <img src={req.petId?.imageUrls?.[0] || req.petId?.imageUrl || "https://via.placeholder.com/150"} alt="Pet" className="size-10 rounded-xl object-cover" />
                                     </div>
                                 </div>
-                              {/* Middle Section: Application Answers */}
+
+                                {/* Middle Section: Application Answers */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-                                    {/* Small Info Badges */}
                                     <div className="flex flex-col gap-4">
                                         <div>
                                             <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Contact Number</p>
@@ -123,7 +164,6 @@ export default function AdoptionRequest() {
                                         </div>
                                     </div>
 
-                                    {/* Big Text Areas */}
                                     <div className="sm:col-span-2 mt-2">
                                         <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Why they want to adopt</p>
                                         <p className="text-[#1c1e21] bg-gray-50 p-4 rounded-xl text-sm leading-relaxed border border-gray-100 italic">"{req.reason || 'No reason provided.'}"</p>

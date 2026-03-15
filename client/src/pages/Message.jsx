@@ -22,17 +22,9 @@ export default function Messages() {
             }
         };
 
-        // 1. Fetch immediately on load, then turn off the loading spinner
         fetchInbox().then(() => setIsLoading(false));
-
-        // 2. Silently fetch fresh messages every 3 seconds!
-        const intervalId = setInterval(() => {
-            fetchInbox();
-        }, 3000);
-
-        // 3. Cleanup: Stop asking the server when the user leaves the inbox
+        const intervalId = setInterval(fetchInbox, 3000);
         return () => clearInterval(intervalId);
-
     }, [token]);
 
     if (isLoading) return <div className="min-h-screen flex justify-center items-center"><FaSpinner className="animate-spin size-12 text-star" /></div>;
@@ -59,40 +51,65 @@ export default function Messages() {
                     </div>
                 ) : (
                     <div className="bg-white rounded-[32px] shadow-sm border border-gray-200/60 overflow-hidden">
-                        {conversations.map((chat, index) => (
-                            <Link 
-                                key={index} 
-                                to={`/chat/${chat.pet._id}/${chat.otherUser._id}`}
-                                className="block p-5 sm:p-6 border-b border-gray-100 hover:bg-gray-50 transition-colors group"
-                            >
-                                <div className="flex items-center gap-4 sm:gap-6">
-                                    {/* Pet Image (Left) */}
-                                    <div className="relative shrink-0">
-                                        <img src={chat.pet.imageUrl} alt={chat.pet.name} className="size-16 sm:size-20 rounded-2xl object-cover border border-gray-200" />
-                                        {/* Little badge showing who they are talking to */}
-                                        <img src={chat.otherUser.profilePicture || "/src/assets/noUser.png"} alt={chat.otherUser.name} className="absolute -bottom-2 -right-2 size-8 rounded-full border-2 border-white shadow-sm object-cover" referrerPolicy="no-referrer" />
-                                    </div>
-                                    
-                                    {/* Message Info (Middle) */}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex justify-between items-start mb-1">
-                                            <h3 className="font-bold text-title text-lg truncate">
-                                                {chat.otherUser.name} <span className="text-subtitle text-sm font-medium ml-1">about {chat.pet.name}</span>
-                                            </h3>
-                                            <span className="text-xs text-gray-400 whitespace-nowrap ml-4">
-                                                {new Date(chat.date).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                                            </span>
-                                        </div>
-                                        <p className="text-subtitle text-sm truncate font-medium">
-                                            {chat.lastMessage}
-                                        </p>
-                                    </div>
+                        {conversations.map((chat, index) => {
+                            
+                            // 🛡️ BULLETPROOF IMAGE LOGIC 🛡️
+                            // Checks if the image is missing, or is literally the word "undefined"
+                            const rawPetImg = chat.pet?.imageUrls?.[0] || chat.pet?.imageUrl;
+                            const safePetImg = (rawPetImg && rawPetImg !== 'undefined' && rawPetImg !== 'null') 
+                                ? rawPetImg 
+                                : "https://placehold.co/150x150/e2e8f0/a1a1aa?text=No+Photo";
 
-                                    {/* Arrow Icon (Right) */}
-                                    <FaChevronRight className="text-gray-300 group-hover:text-star transition-colors shrink-0 hidden sm:block" />
-                                </div>
-                            </Link>
-                        ))}
+                            const rawUserImg = chat.otherUser?.profilePicture;
+                            const safeUserImg = (rawUserImg && rawUserImg !== 'undefined' && rawUserImg !== 'null')
+                                ? rawUserImg
+                                : "/src/assets/noUser.png";
+
+                            return (
+                                <Link 
+                                    key={index} 
+                                    to={`/chat/${chat.pet?._id}/${chat.otherUser?._id}`}
+                                    className="block p-5 sm:p-6 border-b border-gray-100 hover:bg-gray-50 transition-colors group"
+                                >
+                                    <div className="flex items-center gap-4 sm:gap-6">
+                                        
+                                        {/* Pet & User Images */}
+                                        <div className="relative shrink-0">
+                                            <img 
+                                                src={safePetImg} 
+                                                alt={chat.pet?.name || "Pet"} 
+                                                onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/150x150/e2e8f0/a1a1aa?text=No+Photo" }}
+                                                className="size-16 sm:size-20 rounded-2xl object-cover border border-gray-200 bg-gray-100" 
+                                            />
+                                            <img 
+                                                src={safeUserImg} 
+                                                alt={chat.otherUser?.name || "User"} 
+                                                onError={(e) => { e.target.onerror = null; e.target.src = "/src/assets/noUser.png" }}
+                                                className="absolute -bottom-2 -right-2 size-8 rounded-full border-2 border-white shadow-sm object-cover bg-white text-[8px] flex items-center justify-center text-gray-400" 
+                                                referrerPolicy="no-referrer" 
+                                            />
+                                        </div>
+                                        
+                                        {/* Message Info */}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex justify-between items-start mb-1">
+                                                <h3 className="font-bold text-title text-lg truncate">
+                                                    {chat.otherUser?.name || "Unknown User"} <span className="text-subtitle text-sm font-medium ml-1">about {chat.pet?.name || "this pet"}</span>
+                                                </h3>
+                                                <span className="text-xs text-gray-400 whitespace-nowrap ml-4">
+                                                    {new Date(chat.date).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                                                </span>
+                                            </div>
+                                            <p className="text-subtitle text-sm truncate font-medium">
+                                                {chat.lastMessage}
+                                            </p>
+                                        </div>
+
+                                        <FaChevronRight className="text-gray-300 group-hover:text-star transition-colors shrink-0 hidden sm:block" />
+                                    </div>
+                                </Link>
+                            );
+                        })}
                     </div>
                 )}
             </div>

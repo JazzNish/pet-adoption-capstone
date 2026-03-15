@@ -4,31 +4,39 @@ import { FaArrowLeft, FaPaperPlane, FaSpinner } from 'react-icons/fa';
 
 export default function PetChat() {
     const { petId, otherUserId } = useParams();
-    const currentUser = JSON.parse(localStorage.getItem('furever_user'));
+    
+    // 🛡️ SAFE USER PARSING: Prevents the white screen crash!
+    let currentUser = {};
+    try {
+        currentUser = JSON.parse(localStorage.getItem('furever_user')) || {};
+    } catch (e) {
+        currentUser = {};
+    }
     const token = localStorage.getItem('token');
 
-    // --- STATE ---
     const [messages, setMessages] = useState([]);
     const [inputText, setInputText] = useState("");
     const [pet, setPet] = useState(null);
     const [otherUser, setOtherUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     
-    // This reference helps us automatically scroll to the bottom of the chat!
     const messagesEndRef = useRef(null);
 
-    // --- FETCH DATA & AUTO-REFRESH ---
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
-                // 1. Fetch Pet & User Details (Only needs to happen once)
-                const petRes = await fetch(`https://pet-adoption-capstone.onrender.com/api/pets/${petId}`);
-                if (petRes.ok) setPet(await petRes.json());
+                // Fetch Pet Details safely
+                if (petId && petId !== 'undefined') {
+                    const petRes = await fetch(`https://pet-adoption-capstone.onrender.com/api/pets/${petId}`);
+                    if (petRes.ok) setPet(await petRes.json());
+                }
 
-                const userRes = await fetch(`https://pet-adoption-capstone.onrender.com/api/users/${otherUserId}/public`);
-                if (userRes.ok) setOtherUser(await userRes.json());
+                // Fetch User Details safely
+                if (otherUserId && otherUserId !== 'undefined') {
+                    const userRes = await fetch(`https://pet-adoption-capstone.onrender.com/api/users/${otherUserId}/public`);
+                    if (userRes.ok) setOtherUser(await userRes.json());
+                }
 
-                // Fetch initial messages and turn off the loading spinner
                 await fetchMessages();
                 setIsLoading(false);
             } catch (error) {
@@ -37,8 +45,9 @@ export default function PetChat() {
             }
         };
 
-        // This is the function that actually grabs the latest messages
         const fetchMessages = async () => {
+            if (!petId || petId === 'undefined' || !otherUserId || otherUserId === 'undefined') return;
+            
             try {
                 const chatRes = await fetch(`https://pet-adoption-capstone.onrender.com/api/messages/${petId}/${otherUserId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -52,20 +61,11 @@ export default function PetChat() {
             }
         };
 
-        // 1. Run the initial fetch when the page loads
         fetchInitialData();
-
-        // 2. 🚨 THE MAGIC: Set a timer to fetch new messages every 3 seconds!
-        const intervalId = setInterval(() => {
-            fetchMessages();
-        }, 3000);
-
-        // 3. CLEANUP: Stop the timer when the user leaves the chat page!
+        const intervalId = setInterval(fetchMessages, 3000);
         return () => clearInterval(intervalId);
-        
     }, [petId, otherUserId, token]);
 
-    // --- SEND MESSAGE ---
     const handleSendMessage = async (e) => {
         e.preventDefault();
         if (!inputText.trim()) return;
@@ -73,7 +73,7 @@ export default function PetChat() {
         const messageData = {
             petId,
             receiverId: otherUserId,
-            text: inputText
+            text: inputText 
         };
 
         try {
@@ -88,17 +88,26 @@ export default function PetChat() {
 
             if (res.ok) {
                 const newMsg = await res.json();
-                // Add the new message to our screen instantly!
                 setMessages((prev) => [...prev, newMsg]);
-                setInputText(""); // Clear the input box
+                setInputText(""); 
             }
         } catch (error) {
             console.error("Failed to send:", error);
-            alert("Message failed to send.");
         }
     };
 
     if (isLoading) return <div className="min-h-screen flex justify-center items-center"><FaSpinner className="animate-spin size-12 text-star" /></div>;
+
+    // 🛡️ BULLETPROOF IMAGE LOGIC 🛡️
+    const rawPetImg = pet?.imageUrls?.[0] || pet?.imageUrl;
+    const safePetImg = (rawPetImg && rawPetImg !== 'undefined' && rawPetImg !== 'null') 
+        ? rawPetImg 
+        : "https://via.placeholder.com/150?text=No+Image";
+
+    const rawUserImg = otherUser?.profilePicture;
+    const safeUserImg = (rawUserImg && rawUserImg !== 'undefined' && rawUserImg !== 'null')
+        ? rawUserImg
+        : "/src/assets/noUser.png";
 
     return (
         <div className="w-[80vw] mx-auto min-h-[calc(100vh-65px)] flex flex-col bg-white shadow-sm border-x border-gray-200 animate-[fade-in-up_0.3s_ease-out]">
@@ -110,16 +119,27 @@ export default function PetChat() {
                         <FaArrowLeft className="size-5" />
                     </button>
                     <div className="flex items-center gap-3">
-                        <img src={otherUser?.profilePicture || "/src/assets/noUser.png"} alt={otherUser?.name} className="size-10 rounded-full object-cover border border-gray-200" referrerPolicy="no-referrer" />
+                        <img 
+                            src={safeUserImg} 
+                            alt={otherUser?.name || "User"} 
+                            onError={(e) => { e.target.onerror = null; e.target.src = "/src/assets/noUser.png" }}
+                            className="size-10 rounded-full object-cover border border-gray-200 bg-gray-50" 
+                            referrerPolicy="no-referrer" 
+                        />
                         <div>
                             <h2 className="font-bold text-title leading-tight">{otherUser?.name || "Member"}</h2>
-                            <p className="text-xs text-subtitle font-medium">Inquiry about <span className="text-star font-bold">{pet?.name}</span></p>
+                            <p className="text-xs text-subtitle font-medium">Inquiry about <span className="text-star font-bold">{pet?.name || "this pet"}</span></p>
                         </div>
                     </div>
                 </div>
                 {/* Mini Pet Preview */}
                 <Link to={`/pet-details/${petId}`} className="hidden sm:flex items-center gap-2 bg-gray-50 hover:bg-gray-100 p-2 rounded-xl border border-gray-200 transition-colors">
-                    <img src={pet?.imageUrl} alt={pet?.name} className="size-8 rounded-lg object-cover" />
+                    <img 
+                        src={safePetImg} 
+                        alt={pet?.name || "Pet"} 
+                        onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/150?text=No+Image" }}
+                        className="size-8 rounded-lg object-cover bg-white" 
+                    />
                     <span className="text-xs font-bold text-title px-1">View Pet</span>
                 </Link>
             </div>
@@ -128,13 +148,19 @@ export default function PetChat() {
             <div className="flex-1 overflow-y-auto p-6 bg-cover/30 space-y-4">
                 {messages.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-center opacity-70">
-                        <img src={pet?.imageUrl} alt="Pet" className="size-24 rounded-full object-cover shadow-sm mb-4 border-4 border-white" />
+                        <img 
+                            src={safePetImg} 
+                            alt="Pet" 
+                            onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/150?text=No+Image" }}
+                            className="size-24 rounded-full object-cover shadow-sm mb-4 border-4 border-white bg-gray-50" 
+                        />
                         <h3 className="font-bold text-title text-lg">Start the conversation!</h3>
-                        <p className="text-sm text-subtitle max-w-xs mt-1">Send a message to ask about {pet?.name}'s personality, habits, or adoption requirements.</p>
+                        <p className="text-sm text-subtitle max-w-xs mt-1">Send a message to ask about {pet?.name || "this pet"}'s personality, habits, or adoption requirements.</p>
                     </div>
                 ) : (
                     messages.map((msg) => {
-                        const isMe = msg.sender === currentUser.id;
+                        // 🛡️ SAFE CHECK: Uses optional chaining to prevent crash!
+                        const isMe = msg?.sender === currentUser?.id || msg?.sender === currentUser?._id;
                         return (
                             <div key={msg._id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                                 <div className={`max-w-[75%] px-5 py-3 rounded-2xl shadow-sm text-sm font-medium ${
@@ -142,16 +168,15 @@ export default function PetChat() {
                                     ? 'bg-button text-white rounded-tr-sm' 
                                     : 'bg-white text-title border border-gray-200/60 rounded-tl-sm'
                                 }`}>
-                                    {msg.text}
+                                    {msg.content || msg.text}
                                     <div className={`text-[10px] mt-1 text-right ${isMe ? 'text-white/70' : 'text-gray-400'}`}>
-                                        {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                                     </div>
                                 </div>
                             </div>
                         );
                     })
                 )}
-                {/* Invisible div to scroll to! */}
                 <div ref={messagesEndRef} />
             </div>
 
