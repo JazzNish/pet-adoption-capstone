@@ -46,10 +46,11 @@ export const getRehomerApplications = async (req, res) => {
 };
 
 // --- UPDATE APPLICATION STATUS & PET STATUS ---
+// --- UPDATE APPLICATION STATUS & PET STATUS ---
 export const updateApplicationStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const { status } = req.body; // e.g., 'Approved' or 'Rejected'
+        const { status } = req.body; 
 
         // 1. Update the application itself
         const updatedApp = await Application.findByIdAndUpdate(
@@ -63,15 +64,12 @@ export const updateApplicationStatus = async (req, res) => {
         }
 
         // 2. 🚨 THE MAGIC: Automatically update the actual Pet's status! 🚨
-        // (This safely checks if your schema uses 'petId' or 'pet')
         const targetPetId = updatedApp.petId || updatedApp.pet; 
 
         if (targetPetId) {
             if (status === 'Approved') {
-                // Change pet to Pending so it instantly hides from Browse Pets!
                 await Pet.findByIdAndUpdate(targetPetId, { status: 'Pending' });
             } else if (status === 'Rejected' || status === 'Cancelled') {
-                // If they reject the app, put the pet back on the market!
                 await Pet.findByIdAndUpdate(targetPetId, { status: 'Available' });
             }
         }
