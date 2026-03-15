@@ -45,21 +45,43 @@ export const getRehomerApplications = async (req, res) => {
     }
 };
 
-// 4. Update Application Status (Approve/Reject)
+// --- UPDATE APPLICATION STATUS & PET STATUS ---
 export const updateApplicationStatus = async (req, res) => {
     try {
-        const { status } = req.body;
-        const application = await Application.findByIdAndUpdate(
-            req.params.id, 
+        const { id } = req.params;
+        const { status } = req.body; // e.g., 'Approved' or 'Rejected'
+
+        // 1. Update the application itself
+        const updatedApp = await Application.findByIdAndUpdate(
+            id, 
             { status }, 
             { new: true }
         );
-        res.status(200).json({ message: `Application ${status}`, application });
+
+        if (!updatedApp) {
+            return res.status(404).json({ message: "Application not found" });
+        }
+
+        // 2. 🚨 THE MAGIC: Automatically update the actual Pet's status! 🚨
+        // (This safely checks if your schema uses 'petId' or 'pet')
+        const targetPetId = updatedApp.petId || updatedApp.pet; 
+
+        if (targetPetId) {
+            if (status === 'Approved') {
+                // Change pet to Pending so it instantly hides from Browse Pets!
+                await Pet.findByIdAndUpdate(targetPetId, { status: 'Pending' });
+            } else if (status === 'Rejected' || status === 'Cancelled') {
+                // If they reject the app, put the pet back on the market!
+                await Pet.findByIdAndUpdate(targetPetId, { status: 'Available' });
+            }
+        }
+
+        res.status(200).json(updatedApp);
     } catch (error) {
-        res.status(500).json({ message: "Failed to update application status." });
+        console.error("Error updating application status:", error);
+        res.status(500).json({ message: "Failed to update status." });
     }
 };
-
 // --- DELETE AN APPLICATION ---
 export const deleteApplication = async (req, res) => {
     try {
