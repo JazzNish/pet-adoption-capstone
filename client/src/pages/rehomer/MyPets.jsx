@@ -226,7 +226,7 @@ export default function MyPets() {
 
                 {/* --- ADD PET MODAL --- */}
                 {isModalOpen && (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-100 p-4">
                         <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8 relative animate-[fade-in-up_0.3s_ease-out]">
                             
                             <button onClick={() => setIsModalOpen(false)} className="absolute top-6 right-6 text-gray-400 hover:text-gray-800 bg-gray-100 p-2 rounded-full">
