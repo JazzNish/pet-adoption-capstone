@@ -6,7 +6,7 @@ function PublicLayout() {
     return (
         <>
         <div className="flex flex-col">
-            <header className="sticky top-0 z-50 bg-white flex items-center justify-center">
+            <header className="sticky top-0 z-50 flex items-center justify-center py-2">
                 <NavBar />
             </header>
             <main className="flex h-full flex-col">
