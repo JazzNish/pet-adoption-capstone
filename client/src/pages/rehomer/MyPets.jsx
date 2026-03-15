@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom'; // 👈 Imported Link for the View button!
 import { FiEdit2, FiEye, FiTrash2, FiPlus, FiX } from 'react-icons/fi';
 
 export default function MyPets() {
@@ -9,6 +10,9 @@ export default function MyPets() {
     const [isFetchingLocation, setIsFetchingLocation] = useState(false);
     const [imageFiles, setImageFiles] = useState([]); 
     const [imagePreviews, setImagePreviews] = useState([]);
+    
+    // 🚨 NEW STATE: Tells the form if we are adding a new pet, or editing an existing one!
+    const [editingPetId, setEditingPetId] = useState(null);
 
     // Get the logged-in user from localStorage
     const user = JSON.parse(localStorage.getItem('furever_user'));
@@ -30,7 +34,6 @@ export default function MyPets() {
     });
 
     useEffect(() => {
-        // 👇 Check for BOTH id types just to be safe!
         if (user && (user._id || user.id)) {
             fetchPets();
         }
@@ -39,10 +42,8 @@ export default function MyPets() {
     const fetchPets = async () => {
         try {
             const token = localStorage.getItem('token');
-            // 👇 Grab the correct ID from the user object
             const userId = user._id || user.id; 
 
-            // 👇 Use the correct userId in the URL!
             const res = await fetch(`https://pet-adoption-capstone.onrender.com/api/pets/my-pets/${userId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -53,6 +54,15 @@ export default function MyPets() {
         } catch (error) {
             console.error("Network error! Backend didn't answer.", error);
         }
+    };
+
+    // --- MODAL HELPER: Safely close and reset everything ---
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setEditingPetId(null); // Stop editing mode
+        setFormData({ name: '', species: 'Dog', breed: '', age: '', ageUnit: 'Years', weight: '', weightUnit: 'kg', gender: 'Male', location: '', healthInfo: '', description: '', imageUrls: [] });
+        setImageFiles([]);
+        setImagePreviews([]);
     };
 
     // --- AUTO GET LOCATION ---
@@ -87,11 +97,65 @@ export default function MyPets() {
         });
     };
 
-    // --- SUBMIT NEW PET (CLOUDINARY) ---
-    const handleAddPet = async (e) => {
+    // --- 🚨 NEW: DELETE PET 🚨 ---
+    const handleDeletePet = async (petId) => {
+        const confirmDelete = window.confirm("Are you sure you want to permanently delete this pet?");
+        if (!confirmDelete) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`https://pet-adoption-capstone.onrender.com/api/pets/${petId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                // Instantly remove it from the screen
+                setPets(prevPets => prevPets.filter(pet => pet._id !== petId));
+            } else {
+                alert("Failed to delete the pet.");
+            }
+        } catch (error) {
+            console.error("Error deleting pet:", error);
+            alert("An error occurred while deleting.");
+        }
+    };
+
+    // --- 🚨 NEW: OPEN EDIT MODAL 🚨 ---
+    const handleEditClick = (pet) => {
+        // 1. Tell the component we are in "Edit Mode"
+        setEditingPetId(pet._id);
+        
+        // 2. Fill the form with the pet's existing data
+        setFormData({
+            name: pet.name || '',
+            species: pet.species || 'Dog',
+            breed: pet.breed || '',
+            age: pet.age || '',
+            ageUnit: pet.ageUnit || 'Years',
+            weight: pet.weight || '',
+            weightUnit: pet.weightUnit || 'kg',
+            gender: pet.gender || 'Male',
+            location: pet.location || '',
+            healthInfo: pet.healthInfo || '',
+            description: pet.description || '',
+            imageUrls: pet.imageUrls || (pet.imageUrl ? [pet.imageUrl] : []) // Handle old single images gracefully
+        });
+
+        // 3. Show their existing pictures in the preview box
+        setImagePreviews(pet.imageUrls || (pet.imageUrl ? [pet.imageUrl] : []));
+        setImageFiles([]); 
+        
+        // 4. Open the modal!
+        setIsModalOpen(true);
+    };
+
+    // --- SUBMIT PET (Handles BOTH Add AND Edit!) ---
+    const handleSubmitPet = async (e) => {
         e.preventDefault();
         
-        if (imageFiles.length === 0) {
+        // If we are adding a brand new pet, an image is required.
+        if (!editingPetId && imageFiles.length === 0) {
             alert("Please select at least one image for the pet!");
             return;
         }
@@ -99,36 +163,48 @@ export default function MyPets() {
         setIsLoading(true);
 
         try {
-            // Upload ALL images to Cloudinary at the same time!
-            const uploadPromises = imageFiles.map(async (file) => {
-                const uploadData = new FormData();
-                uploadData.append("file", file);
-                uploadData.append("upload_preset", "furever_images"); 
+            let uploadedImageUrls = [];
 
-                const res = await fetch(`https://api.cloudinary.com/v1_1/dpuuysbjr/image/upload`, {
-                    method: "POST",
-                    body: uploadData,
+            // Only upload to Cloudinary if they actually selected NEW images
+            if (imageFiles.length > 0) {
+                const uploadPromises = imageFiles.map(async (file) => {
+                    const uploadData = new FormData();
+                    uploadData.append("file", file);
+                    uploadData.append("upload_preset", "furever_images"); 
+
+                    const res = await fetch(`https://api.cloudinary.com/v1_1/dpuuysbjr/image/upload`, {
+                        method: "POST",
+                        body: uploadData,
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error.message);
+                    return data.secure_url;
                 });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error.message);
-                return data.secure_url;
-            });
+                uploadedImageUrls = await Promise.all(uploadPromises);
+            }
 
-            // Wait for all uploads to finish and get the array of URLs
-            const uploadedImageUrls = await Promise.all(uploadPromises);
+            // Combine existing URLs (if editing) with any newly uploaded URLs
+            const finalImageUrls = editingPetId 
+                ? [...formData.imageUrls, ...uploadedImageUrls] 
+                : uploadedImageUrls;
 
-            // NOW SEND EVERYTHING TO MONGODB
-            // NOW SEND EVERYTHING TO MONGODB
             const petPayload = { 
                 ...formData, 
-                imageUrls: uploadedImageUrls,
-                owner: user._id || user.id // 👈 Fixed this line too!
+                imageUrls: finalImageUrls,
+                owner: user._id || user.id 
             };
             
             const token = localStorage.getItem('token'); 
+            
+            // 👇 If editing, send PUT to /api/pets/:id. If adding, send POST to /api/pets
+            const url = editingPetId 
+                ? `https://pet-adoption-capstone.onrender.com/api/pets/${editingPetId}`
+                : 'https://pet-adoption-capstone.onrender.com/api/pets';
+            
+            const method = editingPetId ? 'PUT' : 'POST';
 
-            const res = await fetch('https://pet-adoption-capstone.onrender.com/api/pets', {
-                method: 'POST',
+            const res = await fetch(url, {
+                method: method,
                 headers: { 
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}` 
@@ -137,11 +213,7 @@ export default function MyPets() {
             });
             
             if (res.ok) {
-                setIsModalOpen(false); 
-                // Reset everything
-                setFormData({ name: '', species: 'Dog', breed: '', age: '', ageUnit: 'Years', weight: '', weightUnit: 'kg', gender: 'Male', location: '', healthInfo: '', description: '', imageUrls: [] });
-                setImageFiles([]);
-                setImagePreviews([]);
+                handleCloseModal(); 
                 fetchPets(); // Refresh the grid!
             } else {
                 const errorData = await res.json();
@@ -149,7 +221,7 @@ export default function MyPets() {
             }
         } catch (error) {
             console.error("Error saving pet or uploading image:", error);
-            alert("An error occurred while uploading. Check console for details.");
+            alert("An error occurred while saving. Check console for details.");
         } finally {
             setIsLoading(false);
         }
@@ -188,8 +260,7 @@ export default function MyPets() {
                     {filteredPets.map((pet) => (
                         <div key={pet._id} className="bg-white rounded-[24px] overflow-hidden shadow-sm border border-gray-100 flex flex-col">
                             <div className="relative h-48 w-full bg-gray-100">
-                                {/* Use the first image in the array as the thumbnail! */}
-                                <img src={pet.imageUrls?.[0] || pet.imageUrl} alt={pet.name} className={`w-full h-full object-cover ${pet.status === 'Adopted' ? 'grayscale opacity-80' : ''}`} />
+                                <img src={pet.imageUrls?.[0] || pet.imageUrl || "https://via.placeholder.com/150?text=No+Photo"} alt={pet.name} className={`w-full h-full object-cover ${pet.status === 'Adopted' ? 'grayscale opacity-80' : ''}`} />
                                 <div className="absolute top-3 left-3 bg-white/95 px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-sm">
                                     <div className={`size-2 rounded-full ${getStatusDot(pet.status)}`}></div>
                                     <span className={getStatusStyle(pet.status)}>{pet.status}</span>
@@ -209,33 +280,47 @@ export default function MyPets() {
                                         <p className="font-bold text-gray-800">{pet.age} {pet.ageUnit}</p>
                                     </div>
                                 </div>
+                                
+                                {/* 🚨 THE THREE BUTTONS ARE NOW HOOKED UP! 🚨 */}
                                 <div className="mt-auto pt-4 border-t border-gray-100 flex justify-between px-2">
-                                    <button className="flex flex-col items-center gap-1 text-gray-400 hover:text-blue-500"><FiEdit2 /><span className="text-[11px] font-bold">Edit</span></button>
-                                    <button className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-800"><FiEye /><span className="text-[11px] font-bold">View</span></button>
-                                    <button className="flex flex-col items-center gap-1 text-gray-400 hover:text-red-500"><FiTrash2 /><span className="text-[11px] font-bold">Delete</span></button>
+                                    <button onClick={() => handleEditClick(pet)} className="flex flex-col items-center gap-1 text-gray-400 hover:text-blue-500 transition-colors">
+                                        <FiEdit2 /><span className="text-[11px] font-bold">Edit</span>
+                                    </button>
+                                    
+                                    <Link to={`/pet-details/${pet._id}`} className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-800 transition-colors">
+                                        <FiEye /><span className="text-[11px] font-bold">View</span>
+                                    </Link>
+                                    
+                                    <button onClick={() => handleDeletePet(pet._id)} className="flex flex-col items-center gap-1 text-gray-400 hover:text-red-500 transition-colors">
+                                        <FiTrash2 /><span className="text-[11px] font-bold">Delete</span>
+                                    </button>
                                 </div>
+
                             </div>
                         </div>
                     ))}
 
-                    <div onClick={() => setIsModalOpen(true)} className="border-2 border-dashed border-gray-200 rounded-[24px] p-6 flex flex-col items-center justify-center hover:bg-gray-50 cursor-pointer min-h-[350px]">
+                    <div onClick={() => setIsModalOpen(true)} className="border-2 border-dashed border-gray-200 rounded-[24px] p-6 flex flex-col items-center justify-center hover:bg-gray-50 cursor-pointer min-h-[350px] transition-colors">
                         <div className="size-12 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 mb-4"><FiPlus className="size-6" /></div>
                         <h3 className="text-lg font-bold text-[#1E293B]">List a new pet</h3>
                     </div>
                 </div>
 
-                {/* --- ADD PET MODAL --- */}
+                {/* --- ADD / EDIT PET MODAL --- */}
                 {isModalOpen && (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-100 p-4">
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[100] p-4">
                         <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8 relative animate-[fade-in-up_0.3s_ease-out]">
                             
-                            <button onClick={() => setIsModalOpen(false)} className="absolute top-6 right-6 text-gray-400 hover:text-gray-800 bg-gray-100 p-2 rounded-full">
+                            <button onClick={handleCloseModal} className="absolute top-6 right-6 text-gray-400 hover:text-gray-800 bg-gray-100 p-2 rounded-full">
                                 <FiX className="size-5" />
                             </button>
 
-                            <h2 className="text-3xl font-bold text-title mb-6">Add a New Pet</h2>
+                            {/* Dynamically change title based on Add vs Edit */}
+                            <h2 className="text-3xl font-bold text-title mb-6">
+                                {editingPetId ? "Update Pet Info" : "Add a New Pet"}
+                            </h2>
 
-                            <form onSubmit={handleAddPet} className="grid grid-cols-2 gap-4">
+                            <form onSubmit={handleSubmitPet} className="grid grid-cols-2 gap-4">
                                 <div className="col-span-2 sm:col-span-1">
                                     <label className="text-sm font-bold text-gray-700 block mb-1">Pet's Name</label>
                                     <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border border-gray-300 p-3 rounded-xl outline-none focus:border-[#F97316]" placeholder="e.g. Luna" />
@@ -321,7 +406,6 @@ export default function MyPets() {
                                     />
                                 </div>
 
-                                {/* Health Information Box */}
                                 <div className='col-span-2'>
                                     <label className="block text-sm font-bold text-[#1c1e21] mb-2">Health & Medical Info</label>
                                     <textarea 
@@ -333,7 +417,6 @@ export default function MyPets() {
                                     ></textarea>
                                 </div>
 
-                                {/* 🚨 THE NEW MAGIC APPEND IMAGE SECTION 🚨 */}
                                 <div className="col-span-2">
                                     <label className="text-sm font-bold text-gray-700 block mb-2">Pet Photos (1 to 5)</label>
                                     
@@ -341,21 +424,20 @@ export default function MyPets() {
                                         type="file" 
                                         accept="image/*"
                                         multiple 
-                                        required={imageFiles.length === 0} 
+                                        // Optional on edit, required on create
+                                        required={!editingPetId && imageFiles.length === 0} 
                                         onChange={(e) => {
                                             const newFiles = Array.from(e.target.files);
-                                            // THIS LINE RIGHT HERE COMBINES OLD AND NEW PICTURES!
                                             const combinedFiles = [...imageFiles, ...newFiles]; 
 
-                                            if (combinedFiles.length > 5) {
-                                                alert("You can only upload a maximum of 5 images.");
+                                            if (combinedFiles.length + formData.imageUrls.length > 5) {
+                                                alert("You can only upload a maximum of 5 images total.");
                                                 return;
                                             }
 
                                             setImageFiles(combinedFiles);
-                                            setImagePreviews(combinedFiles.map(file => URL.createObjectURL(file)));
+                                            setImagePreviews([...imagePreviews, ...newFiles.map(file => URL.createObjectURL(file))]);
                                             
-                                            // Reset the HTML input so you can click the same file twice if needed
                                             e.target.value = ''; 
                                         }} 
                                         className="w-full border border-gray-300 p-2.5 rounded-xl outline-none text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#F97316]/10 file:text-[#F97316] hover:file:bg-[#F97316]/20 transition-colors cursor-pointer mb-3" 
@@ -366,7 +448,11 @@ export default function MyPets() {
                                         <div className="relative border border-gray-200 rounded-xl p-4 bg-gray-50">
                                             <button 
                                                 type="button" 
-                                                onClick={() => { setImageFiles([]); setImagePreviews([]); }}
+                                                onClick={() => { 
+                                                    setImageFiles([]); 
+                                                    setImagePreviews([]); 
+                                                    setFormData({...formData, imageUrls: []}); // Clear old images too if they hit 'X'
+                                                }}
                                                 className="absolute top-2 right-2 bg-white p-1.5 rounded-full text-red-500 hover:bg-red-50 shadow-sm z-10"
                                             >
                                                 <FiX className="size-4" />
@@ -388,7 +474,10 @@ export default function MyPets() {
 
                                 <div className="col-span-2 mt-4">
                                     <button disabled={isLoading} type="submit" className="w-full bg-[#1E293B] hover:bg-black text-white font-bold py-4 rounded-xl transition-colors shadow-sm disabled:opacity-70">
-                                        {isLoading ? "Saving Pet..." : "List Pet for Adoption"}
+                                        {isLoading 
+                                            ? "Saving Pet..." 
+                                            : editingPetId ? "Update Pet Details" : "List Pet for Adoption"
+                                        }
                                     </button>
                                 </div>
                             </form>
