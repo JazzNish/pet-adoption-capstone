@@ -1,5 +1,5 @@
 import express from 'express';
-import { createPet, getRehomerPets, getAllPets, getPetById, getAllPetsAdmin, deletePetAdmin } from '../controllers/petController.js';
+import { createPet, getRehomerPets, getAllPets, getPetById, getAllPetsAdmin, deletePetAdmin, updatePetStatus} from '../controllers/petController.js';
 import authMiddleware from '../middleware/authMiddleware.js'; 
 import roleMiddleware from '../middleware/roleMiddleware.js';
 
@@ -20,6 +20,8 @@ router.get("/", getAllPets);
 router.get("/my-pets/:ownerId", getRehomerPets); 
 
 router.get("/:id", getPetById);
+
+router.patch('/:id/status', authMiddleware, updatePetStatus);
 
 /* ADMIN ROUTES */
 router.get('/admin/all', getAllPetsAdmin);

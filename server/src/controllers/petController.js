@@ -93,6 +93,29 @@ export const getPetById = async (req, res) => {
     }
 };
 
+// --- UPDATE PET STATUS (ARCHIVE / UNARCHIVE) ---
+export const updatePetStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        const updatedPet = await Pet.findByIdAndUpdate(
+            id, 
+            { status }, 
+            { new: true }
+        );
+
+        if (!updatedPet) {
+            return res.status(404).json({ message: "Pet not found." });
+        }
+
+        res.status(200).json(updatedPet);
+    } catch (error) {
+        console.error("Error updating pet status:", error);
+        res.status(500).json({ message: "Server error while updating status." });
+    }
+};
+
 // --- DELETE PET AND ALL RELATED DATA ---
 export const deletePet = async (req, res) => {
     try {

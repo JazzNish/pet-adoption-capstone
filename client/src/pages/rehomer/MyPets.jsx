@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom'; // 👈 Imported Link for the View button!
-import { FiEdit2, FiEye, FiTrash2, FiPlus, FiX } from 'react-icons/fi';
+import { FiEdit2, FiEye, FiTrash2, FiPlus, FiX, FiArchive } from 'react-icons/fi';
 
 export default function MyPets() {
     const [pets, setPets] = useState([]);
@@ -227,9 +227,39 @@ export default function MyPets() {
         }
     };
 
+    // --- 🚨 NEW: ARCHIVE / UNARCHIVE PET 🚨 ---
+    const handleArchivePet = async (petId, currentStatus) => {
+        // If it's already archived, clicking it makes it Available again!
+        const newStatus = currentStatus === 'Archived' ? 'Available' : 'Archived';
+        const actionText = currentStatus === 'Archived' ? 'unarchive' : 'archive';
+
+        const confirmArchive = window.confirm(`Are you sure you want to ${actionText} this pet?`);
+        if (!confirmArchive) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`https://pet-adoption-capstone.onrender.com/api/pets/${petId}/status`, {
+                method: 'PATCH',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+
+            if (res.ok) {
+                fetchPets(); // Instantly refresh the grid!
+            } else {
+                alert(`Failed to ${actionText} the pet.`);
+            }
+        } catch (error) {
+            console.error(`Error trying to ${actionText} pet:`, error);
+        }
+    };
+
     // Helper functions for styling
-    const getStatusStyle = (status) => status === 'Available' ? 'text-green-600' : status === 'Pending' ? 'text-yellow-600' : 'text-gray-500';
-    const getStatusDot = (status) => status === 'Available' ? 'bg-green-500' : status === 'Pending' ? 'bg-yellow-500' : 'bg-gray-400';
+    const getStatusStyle = (status) => status === 'Available' ? 'text-green-600' : status === 'Pending' ? 'text-yellow-600' : status === 'Archived' ? 'text-gray-500' : 'text-gray-400';
+    const getStatusDot = (status) => status === 'Available' ? 'bg-green-500' : status === 'Pending' ? 'bg-yellow-500' : status === 'Archived' ? 'bg-gray-500' : 'bg-gray-300';
 
     // Filter Logic
     const filteredPets = pets.filter(pet => filter === 'All Pets' ? true : pet.status === filter);
@@ -248,7 +278,7 @@ export default function MyPets() {
 
                 {/* --- FILTERS --- */}
                 <div className="flex gap-3 mb-8">
-                    {['All Pets', 'Available', 'Pending', 'Adopted'].map((f) => (
+                    {['All Pets', 'Available', 'Pending', 'Adopted', 'Archived'].map((f) => (
                         <button key={f} onClick={() => setFilter(f)} className={`px-5 py-2 rounded-full font-semibold text-sm border ${filter === f ? 'bg-[#1E293B] text-white border-[#1E293B]' : 'bg-white text-gray-600 border-gray-200'}`}>
                             {f}
                         </button>
@@ -281,7 +311,6 @@ export default function MyPets() {
                                     </div>
                                 </div>
                                 
-                                {/* 🚨 THE THREE BUTTONS ARE NOW HOOKED UP! 🚨 */}
                                 <div className="mt-auto pt-4 border-t border-gray-100 flex justify-between px-2">
                                     <button onClick={() => handleEditClick(pet)} className="flex flex-col items-center gap-1 text-gray-400 hover:text-blue-500 transition-colors">
                                         <FiEdit2 /><span className="text-[11px] font-bold">Edit</span>
@@ -290,6 +319,11 @@ export default function MyPets() {
                                     <Link to={`/pet-details/${pet._id}`} className="flex flex-col items-center gap-1 text-gray-400 hover:text-gray-800 transition-colors">
                                         <FiEye /><span className="text-[11px] font-bold">View</span>
                                     </Link>
+
+                                    {/* 👇 THE NEW ARCHIVE BUTTON! */}
+                                    <button onClick={() => handleArchivePet(pet._id, pet.status)} className="flex flex-col items-center gap-1 text-gray-400 hover:text-orange-500 transition-colors">
+                                        <FiArchive /><span className="text-[11px] font-bold">{pet.status === 'Archived' ? 'Unarchive' : 'Archive'}</span>
+                                    </button>
                                     
                                     <button onClick={() => handleDeletePet(pet._id)} className="flex flex-col items-center gap-1 text-gray-400 hover:text-red-500 transition-colors">
                                         <FiTrash2 /><span className="text-[11px] font-bold">Delete</span>
