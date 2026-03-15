@@ -29,12 +29,10 @@ function BrowsePets() {
     // --- FILTER STATE ---
     const [searchTerm, setSearchTerm] = useState("");
     const [locationFilter, setLocationFilter] = useState("");
-    const [genderFilter, setGenderFilter] = useState(""); // "" means Any, "Male", or "Female"
-    const [maxAge, setMaxAge] = useState(20); // Default slider to max 20 years
+    const [genderFilter, setGenderFilter] = useState(""); 
+    const [maxAge, setMaxAge] = useState(20); 
     const [mapMarker, setMapMarker] = useState(null);
 
-    // --- FETCH PETS ---
-    // --- FETCH PETS AND SAVED PETS ---
     // --- FETCH PETS AND SAVED PETS (WITH AUTO-REFRESH) ---
     useEffect(() => {
         const fetchAllData = async () => {
@@ -59,19 +57,12 @@ function BrowsePets() {
             } catch (error) {
                 console.error("Failed to fetch data silently", error);
             } finally {
-                // This turns off the big spinner after the first load. 
-                // It stays false, so the 5-second refreshes stay completely invisible!
                 setIsLoading(false); 
             }
         };
 
-        // 1. Fetch instantly when the page loads
         fetchAllData();
-
-        // 2. THE MAGIC: Silently fetch again every 5 seconds
         const intervalId = setInterval(fetchAllData, 5000);
-
-        // 3. Clean up the timer when they leave the browse page
         return () => clearInterval(intervalId);
         
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -92,7 +83,7 @@ function BrowsePets() {
 
             if (res.ok) {
                 const updatedSavedIds = await res.json();
-                setSavedPetIds(updatedSavedIds); // Updates the UI instantly!
+                setSavedPetIds(updatedSavedIds); 
             }
         } catch (error) {
             console.error("Error saving pet", error);
@@ -104,10 +95,9 @@ function BrowsePets() {
         useMapEvents({
             click: async (e) => {
                 const { lat, lng } = e.latlng;
-                setMapMarker({ lat, lng }); // Drop the pin!
+                setMapMarker({ lat, lng }); 
 
                 try {
-                    // Fetch city name based on where they clicked
                     const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
                     const data = await res.json();
                     
@@ -115,7 +105,7 @@ function BrowsePets() {
                     const city = address.city || address.town || address.village || "";
                     
                     if (city) {
-                        setLocationFilter(city); // Update the filter instantly!
+                        setLocationFilter(city); 
                     }
                 } catch (error) {
                     console.error("Error fetching location:", error);
@@ -128,6 +118,9 @@ function BrowsePets() {
     // --- FILTER LOGIC ---
     const filteredPets = pets.filter(pet => {
         
+        // 🚨 THE SAFETY NET: Instantly hide any pet that is Pending or Adopted!
+        if (pet.status !== 'Available') return false;
+
         // 1. Search Logic (Name, Breed, or Location)
         const searchLower = searchTerm.toLowerCase();
         const matchesSearch = searchTerm === "" || 
@@ -135,22 +128,18 @@ function BrowsePets() {
             (pet.breed && pet.breed.toLowerCase().includes(searchLower)) ||
             (pet.location && pet.location.toLowerCase().includes(searchLower));
 
-        // Inside your filteredPets logic, add this:
+        // 2. Location Logic
         const matchesLocation = locationFilter === "" || 
             (pet.location && pet.location.toLowerCase().includes(locationFilter.toLowerCase()));
 
-        // Make sure to return it!
-
-        // 2. Gender Logic (Radio Buttons)
+        // 3. Gender Logic (Radio Buttons)
         const matchesGender = genderFilter === "" || pet.gender === genderFilter;
 
-        // 3. Age Logic (Slider)
-        // Convert everything to months so we can mathematically compare it!
+        // 4. Age Logic (Slider)
         const ageInMonths = pet.ageUnit === 'Years' ? pet.age * 12 : pet.age;
         const maxAgeInMonths = maxAge * 12;
         const matchesAge = ageInMonths <= maxAgeInMonths;
 
-        // The pet must pass ALL active filters to show up on the screen
         return matchesSearch && matchesLocation && matchesGender && matchesAge;
     });
 
@@ -158,6 +147,8 @@ function BrowsePets() {
     // --- RESET FILTERS ---
     const handleReset = () => {
         setSearchTerm("");
+        setLocationFilter(""); // Clears location too!
+        setMapMarker(null);
         setGenderFilter("");
         setMaxAge(20);
     };
@@ -169,7 +160,6 @@ function BrowsePets() {
             <section className="my-2 mx-4 w-72 fixed h-[calc(100vh-100px)] overflow-y-auto flex border border-gray-200 rounded-xl bg-white">
                 <div className="w-full px-5 flex flex-col gap-6 text-sm py-6">
                     
-                    {/* Filter Header & Reset Button */}
                     <div className="flex justify-between items-center">
                         <span className="text-title font-bold text-xs tracking-wider uppercase text-gray-500">Filters</span>
                         <button onClick={handleReset} className="text-subtitle bg-gray-100 p-1 rounded-md cursor-pointer text-xs font-bold transition-opacity">
@@ -177,7 +167,6 @@ function BrowsePets() {
                         </button>
                     </div>
                     
-                    {/* SEARCH BAR (Name, Breed, Location) */}
                     <div className="flex flex-col gap-2">
                         <label className="text-title font-bold text-xs text-gray-600">Search</label>
                         <input 
@@ -203,7 +192,6 @@ function BrowsePets() {
                         </div>
                         
                         <div className="h-40 w-full rounded-xl overflow-hidden border border-gray-200/60 shadow-sm relative z-0">
-                            {/* The Map */}
                             <MapContainer center={[14.6760, 121.0437]} zoom={11} scrollWheelZoom={true} className="h-full w-full">
                                 <TileLayer
                                     attribution='&copy; OpenStreetMap'
@@ -213,7 +201,6 @@ function BrowsePets() {
                                 {mapMarker && <Marker position={mapMarker} />}
                             </MapContainer>
 
-                            {/* Clear Map Pin Button */}
                             {mapMarker && (
                                 <button 
                                     onClick={() => { setLocationFilter(""); setMapMarker(null); }}
@@ -229,7 +216,7 @@ function BrowsePets() {
 
                     <div className="h-px bg-gray-100 w-full"></div>
 
-                    {/* GENDER RADIO BUTTONS (Segmented Control Style) */}
+                    {/* GENDER RADIO BUTTONS */}
                     <div className="flex flex-col gap-2">
                         <label className="text-title font-bold text-xs text-gray-600">Gender</label>
                         <div className="flex bg-gray-100 p-1 rounded-lg">
@@ -280,7 +267,6 @@ function BrowsePets() {
             {/* MAIN CONTENT AREA */}
             <section className="flex flex-col gap-6 my-4 ml-80 w-full pr-8">
                 
-                {/* Header */}
                 <div className="flex justify-between mx-2 items-center py-6">
                     <div>
                         <h2 className="text-2xl font-extrabold text-title mb-1">Available Pets</h2>
@@ -291,7 +277,6 @@ function BrowsePets() {
                     </div>
                 </div>
 
-                {/* Pet Grid */}
                 <div className="flex flex-col gap-4">
                     {isLoading ? (
                         <div className="flex justify-center items-center py-32">
@@ -311,11 +296,7 @@ function BrowsePets() {
                                 <PetCard 
                                     key={pet._id}
                                     id={pet._id}
-                                    
-                                    // 👇 UPDATE THIS LINE:
-                                    // It safely checks for the new array first, then falls back to the old string for your older test pets!
                                     image={pet.imageUrls?.[0] || pet.imageUrl} 
-                                    
                                     name={pet.name}
                                     breed={pet.breed || "Mixed Breed"} 
                                     location={pet.location}
